@@ -1,0 +1,1797 @@
+<!-- this was taken by choosing "New providers" from the original then compare years, then
+     all states. -->
+
+<table cellspacing="0" cellpadding="3" border="0" class="tabledata">
+      
+      <caption>New Provider and Supplier Counts Report</caption>
+      <thead>
+        <tr class="colTitle">
+          
+          <th scope="col" class="center" rowspan="2">
+            State
+          </th>
+          
+          <th scope="col" class="center" colspan="17">New Providers and Suppliers</th>
+            
+        </tr>
+        <tr class="colTitle">
+          				<th scope="col" class="center">
+            2010</th>
+
+          				<th scope="col" class="center">
+            2011</th>
+
+          				<th scope="col" class="center">
+            2012</th>
+
+          				<th scope="col" class="center">
+            2013</th>
+
+          				<th scope="col" class="center">
+            2014</th>
+
+          				<th scope="col" class="center">
+            2015</th>
+
+          				<th scope="col" class="center">
+            2016</th>
+
+          				<th scope="col" class="center">
+            2017</th>
+
+          				<th scope="col" class="center">
+            2018</th>
+
+          				<th scope="col" class="center">
+            2019</th>
+
+          				<th scope="col" class="center">
+            2020</th>
+
+          				<th scope="col" class="center">
+            2021</th>
+
+          				<th scope="col" class="center">
+            2022</th>
+
+          				<th scope="col" class="center">
+            2023</th>
+
+          				<th scope="col" class="center">
+            2024</th>
+
+          				<th scope="col" class="center">
+            2025</th>
+
+          				<th scope="col" class="center">
+            2026</th>
+
+          
+        </tr>
+      </thead>
+      <tbody>
+
+        <!--Region 
+ SELECT 
+	R.cd_id, 
+	'(' || SUBSTR(R.cd_desc, 1, STRPOS(R.cd_desc, ' ') - 1) || ') ' || INITCAP(SUBSTR(R.cd_desc, STRPOS(R.cd_desc, ' ') + 1)) AS region, 
+		Q.year, 
+		COUNT(P.prvdr_intrnl_num) AS num_providers 
+ FROM 
+	csp_cms_rgn_cd R, 
+		provider_summary P, 
+		qtr_dates Q 
+	WHERE 
+		Q.year_type = 'CY' 
+		AND Q.year BETWEEN '2010' AND '2026' 
+		AND Q.qtr = 0
+		AND P.prvdr_ctgry_cd IN ('11') 
+		AND P.orgnl_prtcptn_dt <= Q.end_dt 
+		AND P.orgnl_prtcptn_dt >= Q.start_dt 
+		AND ( P.trmntn_exprtn_dt >= Q.start_dt 
+			OR P.trmntn_exprtn_dt IS NULL ) 
+	AND R.cd_id = P.rgn_cd 
+	AND P.state_cd not in ('CN', 'FN', 'MX') 
+	GROUP BY 
+		Q.year, 
+	R.cd_id, 
+	R.cd_desc 
+	ORDER BY 
+	cd_id, 
+		year 
+ -->
+<!-- 
+ SELECT 
+	cd_id,  
+	INITCAP(ST.cd_desc) AS state,  
+		prov.year, 
+	COALESCE(prov.num_providers,0) as num_providers 
+	FROM  
+	csp_state_cd ST,  
+	(SELECT 
+	p.state_cd,
+		Q.year, 
+		COUNT(P.prvdr_intrnl_num) AS num_providers 
+ FROM 
+		provider_summary P, 
+		qtr_dates Q 
+	WHERE 
+		Q.year_type = 'CY' 
+		AND Q.year BETWEEN '2010' AND '2026' 
+		AND Q.qtr = 0
+		AND P.prvdr_ctgry_cd IN ('11') 
+		AND P.orgnl_prtcptn_dt <= Q.end_dt 
+		AND P.orgnl_prtcptn_dt >= Q.start_dt 
+		AND ( P.trmntn_exprtn_dt >= Q.start_dt 
+			OR P.trmntn_exprtn_dt IS NULL ) 
+	AND P.state_cd not in ('CN', 'FN', 'MX') 
+	GROUP BY 
+		Q.year, 
+	P.state_cd  
+	) prov  
+	WHERE 
+	ST.cd_id = PROV.state_cd 
+	AND ST.cd_id not in ('CN', 'FN', 'MX') 
+	ORDER BY 
+	cd_desc, 
+		year 
+ -->
+      
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SAL"></a>Alabama
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SAZ"></a>Arizona
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SAR"></a>Arkansas
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SCA"></a>California
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">16</td>
+      
+      <td class="right">17</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">16</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">18</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">2</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SCO"></a>Colorado
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">9</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SCT"></a>Connecticut
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SDC"></a>District Of Columbia
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">2</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SFL"></a>Florida
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SHI"></a>Hawaii
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SID"></a>Idaho
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SIL"></a>Illinois
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SIN"></a>Indiana
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">25</td>
+      
+      <td class="right">22</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SIA"></a>Iowa
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SKY"></a>Kentucky
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SLA"></a>Louisiana
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">8</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SME"></a>Maine
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SMN"></a>Minnesota
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SMS"></a>Mississippi
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SNE"></a>Nebraska
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SNV"></a>Nevada
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SNM"></a>New Mexico
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SNY"></a>New York
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">15</td>
+      
+      <td class="right">18</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">36</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SNC"></a>North Carolina
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SND"></a>North Dakota
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SOH"></a>Ohio
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">7</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">16</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SOK"></a>Oklahoma
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SPA"></a>Pennsylvania
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SSD"></a>South Dakota
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="STN"></a>Tennessee
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">31</td>
+      
+      <td class="right">18</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">15</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="STX"></a>Texas
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">8</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SUT"></a>Utah
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SVA"></a>Virginia
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">3</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+          
+    <tr>
+      
+      <th scope="row" class="left">
+        <table cellspacing="0" cellpadding="0" border="0">
+          <tbody><tr>
+            <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            <td style="font-weight: normal;">
+              <a name="SWV"></a>West Virginia
+            </td>
+          </tr>
+        </tbody></table>
+      </th>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    <tr class="colTitle">
+      
+      <th scope="row" class="left">National Total</th>
+        
+      <td class="right">133</td>
+      
+      <td class="right">120</td>
+      
+      <td class="right">77</td>
+      
+      <td class="right">49</td>
+      
+      <td class="right">67</td>
+      
+      <td class="right">78</td>
+      
+      <td class="right">96</td>
+      
+      <td class="right">80</td>
+      
+      <td class="right">50</td>
+      
+      <td class="right">36</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">40</td>
+      
+      <td class="right">31</td>
+      
+      <td class="right">25</td>
+      
+      <td class="right">44</td>
+      
+      <td class="right">32</td>
+      
+      <td class="right">4</td>
+      
+    </tr>
+  </tbody>
+</table>

@@ -1,0 +1,116 @@
+---
+title: "Size comparisons in NC and nationwide"
+format: 
+  html: 
+    theme: cosmo
+    code-fold: true
+    echo: false
+    code-tools: true
+---
+
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+#| output: false
+
+
+pacman::p_load("here", "tidyverse", "janitor", "ggplot2", "tidyplots", "ggthemes", "hrbrthemes", "gt")
+
+i_am("analysis/peer_group_creation.qmd")
+
+```
+
+
+## Descriptive size measures
+
+```{r}
+#| label: get-data
+#| output: false
+
+all_facilities <- readRDS(here("cms_3070g/cms3070g_allfields.RDS")) |> 
+    select ( ccn=provider_ccn, state = state_code, facility=name_of_facility  , parent_name,type_of_ownership, nyt_owner_type, survey_date, county,   icfiid_beds, resident_estimate) |> 
+arrange ( ccn, survey_date) |> 
+group_by ( ccn ) |> 
+slice_tail(n=1) |> 
+ungroup() |> 
+mutate ( state_compare = factor (case_when ( state == "NC" ~ "North Carolina" , 
+                                            .default = "Rest of Country") )
+)  
+
+
+
+```
+
+
+
+
+```{r}
+#| label: size-plot-basic
+#| output: hold
+
+library(ggbeeswarm)
+
+cutoffs <- c(6, 30, 50, 100, Inf)
+
+box_stats <- all_facilities |>
+  filter(resident_estimate > 0) |>
+  mutate ( nyt_owner_type = factor(nyt_owner_type, levels = c("Investor owned", "Non-profit","Government", "Other"))) |> 
+  summarise(
+    median = median(resident_estimate),
+    q1 = quantile(resident_estimate, 0.25),
+    q3 = quantile(resident_estimate, 0.75),
+    p90 = quantile (resident_estimate, .9),
+    max = max(resident_estimate),
+    facilities = n() ,
+    .by = c(nyt_owner_type, state_compare)
+  )
+
+
+box_stats |>  gt(groupname_col = "state_compare") |>
+  fmt_number(decimals = 1) |>
+  tab_header(
+    title = "Facility Size Descriptive Statistics",
+    subtitle = "By Ownership Type and State"
+  )
+
+  all_facilities |>
+  filter ( resident_estimate > 0) |> 
+  ggplot(aes(x = nyt_owner_type, y = resident_estimate, color = nyt_owner_type)) +
+  geom_boxplot(
+    width = 0.3,
+    outlier.shape = NA,
+    color = "gray40",
+    fill = NA
+  ) +
+  geom_jitter(
+    size = 1,
+    alpha = 0.5,
+    width = 0.2    # controls how far points spread horizontally
+  ) +
+  scale_y_log10() +
+  labs(
+    title = "Facility Size by Ownership Type",
+    subtitle = "Each dot is one facility ",
+    x = NULL,
+    y = "Resident Estimate (log scale)",
+    color = "Ownership Type"
+  ) +
+  theme_few() +
+  theme(legend.position = "none") +
+  facet_grid ( cols = vars(state_compare), scales="free") +
+  geom_hline(yintercept = 6, linetype = "solid", color = "gray", linewidth = 1)
+
+
+
+```
+
+
+## Setting cutoffs for peer groups
+
+Considerations: 
+
+* Rules can vary when they are 6 residents or fewer. I don't recall if this is a North Carolina or CMS distinction, but there is a distinction in the regulations. 
+
+* There are very few institutions between about 10 and 100 residents. 

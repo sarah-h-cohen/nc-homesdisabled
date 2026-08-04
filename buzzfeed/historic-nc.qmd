@@ -1,0 +1,347 @@
+---
+title: Buzzfeed data analysis of ICFS
+author: Sarah Cohen
+format:
+  html:
+    code-fold: show
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+
+---
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+#| output: false
+
+# start with a clean slate so it mimics the rendering process
+rm(list=ls()) 
+
+# add other libraries here
+library(tidyverse, quietly=TRUE)
+library(janitor, quietly=TRUE)
+library(here,  quietly=TRUE)
+library(googlesheets4)
+
+# set default path
+here::i_am("buzzfeed/historic-nc.qmd")
+# beginning of the buzzfeed data path on github for raw data
+buzzfeed_path <- "https://raw.githubusercontent.com/BuzzFeedNews/2022-04-icf-analysis/refs/heads/main/data/"
+
+# ? I *think* this makes the subtraction work. 
+study_end <- mdy ("12/31/2021")
+
+
+```
+
+
+## Buzzfeed's 2022 analysis of ICFs
+
+::: callout-note
+
+Data from Buzzfeed was taken from its  Github documentation and data site, <https://github.com/BuzzFeedNews/2022-04-icf-analysis>, and the [story](https://www.buzzfeednews.com/article/johntemplon/kkr-buzzfeed-news-data-analysis). The analysis was done in April 2022, reflecting data from 2017 through 2021. It focused heavily on the performance of BrightSpring, owned by KKR and operated under other umbrellas such as VOCA, versus the rest of the ICF industry. There didn't appear to be any attempt to break out ownership type (say, for-profit chain vs. government), or size of the facility.
+
+:::
+
+Another source of data analysis of the industry comes from the paper, "Intermediate Care Facilities for Individuals with Intellectual Disabilities: Does Ownership Type Affect Quality of Care?", and its appendix that goes through the data sources. There is apparently a data kit that contains everything needed for replication but it's not on any of the usual sites.^[I've contacted the Stanford author, Alison Morantz, but she has not returned the email. As we get further along, I'll try calling her.]
+
+### Import buzzfeed's historic data
+
+Get all of the Buzzfeed data, renaming some columns. 
+
+To do a few different versions, I set the `study_start` and other conditions such as size in a later step. 
+
+
+```{r}
+#| label: import-buzzfeed-tables
+
+# use integers so that we dont get floating point weirdness. 
+
+bf_facilities <- read_csv( 
+    str_c( buzzfeed_path, "qcor/facilities.csv"), show_col_types = FALSE, 
+          col_types = cols( .default = col_guess(), 
+                            certified_beds = col_integer(), 
+                            type = col_skip() , 
+                            region = col_skip()
+                            ) 
+  ) |> 
+  rename ( provider_name = name,
+           provider_state = state,
+           provider_addr = address,
+           provider_phone = phone
+    ) 
+
+bf_surveys <- read_csv( str_c( buzzfeed_path, "qcor/surveys.csv"), show_col_types = FALSE, 
+                 col_types = cols( .default=col_character(), 
+                                num_deficiencies = col_integer() , 
+                                date = col_date()
+                                )
+              ) |> 
+          rename ( survey_date = date, survey_type = type, survey_subtype = subtype) 
+  
+
+
+bf_deficiencies <- read_csv( str_c( buzzfeed_path, "qcor/deficiencies.csv"), show_col_types = FALSE) |> 
+  # take the original name (x) and add "def_" to the beginning.
+  rename_with  ( \(x) 
+                    str_c("def_", x), 
+                    .cols = c(level, tag, desc, date)
+                ) |> 
+  semi_join ( bf_surveys, join_by ( survey_key))
+
+
+
+
+```
+
+There are 56 facilities that never had any surveys, and all but one terminated before our study begins. We don't have to adjust anything for those with zero surveys. (Just make sure to keep surveys with no deficiencies.)
+
+
+I might find the ownership information useful from the Buzzfeed, but the only overlapping state is NC: 
+
+```{r}
+#| label: get-bf-ownership
+
+states <- c("ca", "in", "la", "nc", "oh", "tx", "wv")
+
+# 2. Construct the full URL for each file
+base_url <- "https://raw.githubusercontent.com/BuzzFeedNews/2022-04-icf-analysis/main/data/ownership/final/"
+file_urls <- paste0(base_url, states, ".csv")
+
+bf_ownership_data <- map(file_urls, \(x) read_csv(x, show_col_types = FALSE, name_repair="unique_quiet")) |>
+  list_rbind(names_to = "source_file_id") |> 
+  filter (is_brightspring == TRUE) |>
+  mutate ( private_equity_company = "KKR") |> 
+  pull ( private_equity_company, name=provider_id)
+
+
+
+```
+
+And get our own ownership information: 
+
+Malena has found each of the KKR facilities in NC, and has also noted the KKR ones in her North Carolina analysis from 2025. :
+
+```{r}
+#| label: get-google-sheet-bluewolf
+
+ownership_sheetid <- "14yCjtoATpmPczuKX-n1pfrxdNoz3m0AHUsw4mTs9vCQ"
+
+nyt_ownership_nc <- read_sheet( ownership_sheetid, sheet="Clean Data") |> 
+  clean_names() |> 
+  select ( provider_id = cms_certification_number , fac_name = name, private_equity_company) |> 
+  mutate ( private_equity_company = 
+              case_when ( str_starts(private_equity_company, "Blue Wolf|KKR") ~ private_equity_company,
+                          provider_id %in% bf_ownership_data ~ "KKR", 
+                          .default = NA_character_)
+        ) |> 
+  filter ( !is.na ( private_equity_company) ) |> 
+  pull ( private_equity_company, name=provider_id)
+
+all_private_equity <- 
+  c( bf_ownership_data, nyt_ownership_nc) 
+
+
+facilities <- 
+  bf_facilities |> 
+  mutate ( private_equity = all_private_equity[provider_id]) 
+
+
+```
+
+
+### Set time period and inclusions
+
+Buzzfeed's data went from 2019 to 2021, which roughly matched the timing of the takeover by KKR. We don't have the national ownership profile, and the states they used don't have Blue Wolf facilities (or so it seems - they don't have many ICF's outside NC). 
+
+**Timing** : Use 2017-2021, which is a convenient 5-year period.^[Starts on the last day of the previous year so that I can do the subtraction correctly)]
+
+```{r}
+#| label: set-study-start
+
+study_start <- mdy("12/31/2016")
+
+
+```
+
+### Size, ownership and bed-days
+
+Buzzfeed used an adjustment for the number of days * the number of certified beds to level the playing field. The Stanford paper on quality related to ownership did it both ways -- as bed-years and also by facility, using the logic that many deficiencies are not dependent on the size, such as roaches or bad food. But it seems odd to modify by this rather than days open, since they are already limiting it to a set of small homes. There is nothing that really should be changed here. I wouldn't do that. 
+
+
+```{r}
+#| label: count-deficiencies-annual
+
+facilities_used <- 
+  bf_facilities |>
+  left_join ( select (nyt_ownership_nc, provider_id, private_equity_company), join_by (provider_id)) |>
+  # just give it an end date so we can see how long open.  
+  mutate ( end_date = coalesce (termination_date, study_end), 
+           start_date = pmax( particip_date, study_start), 
+           days_open = as.numeric ( end_date - start_date),
+           bed_days_open = days_open * certified_beds, 
+  # right=FALSE means that 10 is not included in "Small", lowest means 0 is included. 
+           size_cat  = cut( 
+                        certified_beds, 
+                        breaks = c(0, 10, Inf) ,
+                        labels = c("Small", "Large") , 
+                        include_lowest=TRUE,
+                        right=FALSE
+                        ), 
+            
+           owner_group = 
+              case_when ( !is.na(private_equity_company)  ~ private_equity_company , 
+                          .default = ownership_type), 
+    .after=certified_beds
+  )  |> 
+  mutate ( private_equity = if_else ( provider_id %in% bf_ownership_data | provider_id %in% ))
+
+
+
+```
+
+###  Complaint condition deficiencies
+
+::: blockquote
+This notebook analyzes whether BrightSpring has received more conditions in complaint surveys (referred to as Complaint surveys in QCOR) than other providers in the seven states with the most for-profit facilities. The analysis looks only at smaller (4-8 bed) facilities.
+:::
+
+Small operations only:
+
+```{r}
+#| label: filter-size
+
+library(dplyr)
+
+sm_state_owners <- facilities_years |>
+  filter(between(certified_beds, 4, 8))
+
+
+glimpse(sm_state_owners)
+
+```
+
+Types of surveys:
+
+```{r}
+#| label: filter-surveys
+
+survey_df <- bf_surveys |>
+  semi_join (sm_state_owners, join_by (provider_id)) |> 
+  filter(
+    between(survey_date, as.Date("2016-01-01"), as.Date("2021-12-31")),
+    survey_type == "COMPLAINT",
+    survey_subtype == "HEALTH"
+  )
+
+
+
+```
+
+Keep the condition deficiencies: 
+
+```{r}
+#| label: condition-deficiencies
+
+con_df <- bf_deficiencies |>
+  semi_join ( survey_df, join_by ( survey_key)) |>
+  filter(
+    def_level == "Condition")
+  
+glimpse(con_df)
+
+```
+
+
+```{r}
+#| label: count-condition-deficiencies
+
+
+con_surveys <- con_df |>
+  count(survey_key, name = "condition_count")
+
+
+```
+
+
+Here, I'll change this from the way they did it to the way we're doing it. They had grouped by `is_brightspring` and `state`, using the states that they had pulled out. For my first cut, let's just look at for-profit vs. non-profit vs. government instead. 
+
+
+```{r}
+#| label: count-condition-by-ownership
+
+
+survey_df |>
+  left_join(con_surveys, by = "survey_key") |>
+  mutate(condition_count = replace_na(condition_count, 0)) |>
+  inner_join(
+    sm_state_owners |>
+      filter ( provider_state == "NC") |> 
+      select(provider_id, provider_name, provider_state, owner_group, ,  bed_days_open) ,
+    by = "provider_id"
+  ) |>
+  group_by(provider_state, owner_group) |>
+  summarise(
+    facs = n_distinct(provider_id),
+    surveys = n_distinct(survey_key),
+    conditions = sum(condition_count, na.rm = TRUE),
+    total_bed_days_open = sum(bed_days_open, na.rm = TRUE),
+    .groups = "drop"
+  ) |>
+  mutate(
+    conditions_per_10000_bed_days = conditions / total_bed_days_open * 10000
+  )
+
+
+```
+
+
+::: {.blockquote}
+The CASPER database includes information on
+four measures that at least arguably shed light on
+quality of care in ICF/IIDs: (1) the number of
+deficiency citations issued by state inspectors; (2)
+the numbers of total and substantiated complaints
+filed against the facility; (3) the per-resident ratios
+of total (full-time equivalent) direct-care staff and
+registered nursing staff, respectively, reported on
+the Annual Survey; and (4) whether facilities
+report using controversial techniques—drugs, phys-
+ical restraint, and time-out rooms, respectively—to
+control behavior. 
+
+:::
+
+
+
+We can only do #1 and #2 with what we have right now - we don't have the survey data that would tell us the rest. 
+
+Here are the comparative metrics they created, which we can replicate: 
+
+Composition:
+
+* Average size
+* Facility count
+* Facility-surveys (not sure exactly what this means)
+* Total # of residents. 
+
+Outcomes: 
+
+* Citations (deficiencies)
+* Citations / resident
+* I would add: Condition citations and same per resident. 
+
+Complaints
+* I think this comes from the complaint type survey, and substantiated is whether there is a deficiency in the complaint? I'm not sure. 
+
+They look at these per annual survey - I don't think we know this? 
+
+When I look at the survey data, it looks like there is a standard one on  or near the same date as a complaint survey, which suggests they do an additional one when they get complaints? I'm not sure how we should handle this.  The appendix says that they get the annual survey data, then merge it based on the survey date and certification date. 
+
+
+
+

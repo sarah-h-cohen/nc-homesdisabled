@@ -1,0 +1,151 @@
+---
+title: "Combine qcor provider tables"
+format: html
+---
+
+
+```{r}
+#| label: setup
+
+pacman::p_load("tidyverse", "here", "janitor", "lubridate", "glue")
+
+i_am("qcor/01-get-all-year-providers.qmd")
+
+```
+
+::: callout-note
+
+I tried figuring out how to download these automatically, but it kept failing and I just didn't want to deal with it anymore. So I downloaded each year separately, and now need to get them into one dataset. 
+
+::: 
+
+Read through each file and do the following: 
+
+1. Line 5 of the original dataset has the "Year:", "2012", for example. I just need to read in the 5th line and parse it. 
+2. Line 7  is the original headers, 
+3. Line 8 begins the data. 
+
+
+## List of files
+
+Map file names to the years :
+
+```{r}
+#| label: get-years-files
+
+list_of_files <- list.files( path = here("qcor/qcor-providers"), pattern = "actprov_listing.*csv", full.names = FALSE)
+
+# read the 5th line of the file. 
+
+year_list <- map_chr(list_of_files, \(x) {
+    read_lines(here("qcor/qcor-providers", x), n_max = 5)[5] |>
+        str_extract("\\d{4}") 
+    }) |>
+    set_names(list_of_files) |> 
+    # turn it into a data frame.
+    enframe ( name="file_name", value="year") |> 
+    arrange ( year)
+    
+    
+    
+```
+
+
+Get the files read in: 
+
+```{r}
+#| label: read-all-files
+
+list_of_dfs <- map ( list_of_files, \(x) {
+    read_csv(
+        here(glue("qcor/qcor-providers/{x}")),
+        skip = 6,
+        col_names = TRUE,
+        col_types = c(  .default = "character",
+                        `Number of Certified Beds` = "integer"
+                     )
+    )  |>
+    clean_names() |>
+    mutate(across  ( c(original_participation_date, termination_date), 
+                    \(x) { mdy(x) }
+                  ), 
+           file_name = x
+      )
+    }
+  )   |> 
+  list_rbind() |> 
+  left_join ( year_list , join_by (file_name ) ) |> 
+  arrange (  ccn, year, file_name)
+  
+
+
+```
+
+
+## Latest list 
+
+::: {.callout-warning}
+
+
+The ownership type in this file only reflects the most recent year it was in the provider file. They've applied all of the details about the facility from the most recent 3070G program. (Example: the 3070 data showed Caswell as changing from state-owned to private, erroneously, in 2025. That private designation applies to all of these rows.)
+
+This means there's no usefulness in keeping previous year data -- the only reason to get all of the years is to make sure we don't miss providers that closed or opened during the 2010-2026 period.
+
+They do only have three types -- not the many types that were in cms data. 
+
+::: 
+
+Removed "Unrecognized" types, which were 5 providers with no bed count , two of which had no CCN. One of these was new, I couldn't find the others. 
+
+
+```{r}
+#| label: cleaned-providers
+#| warning: false
+
+all_providers <- 
+  list_of_dfs |> 
+  mutate (
+    data_year = as.integer(year) ,
+    participation_start_year = year(original_participation_date), 
+    termination_year = coalesce(year(termination_date), 2027) ) |> 
+  mutate ( use_this = if_else ( between ( data_year, participation_start_year, termination_year), TRUE, FALSE)) |> 
+  filter ( use_this == TRUE) |> 
+  filter ( ownership_type != "Unrecognized") |> 
+  select ( year , ccn:county, ownership_type, certified_beds = number_of_certified_beds, begin_date = original_participation_date, termination_date)
+
+# I haven't checked to see if it's missing in interim years if they have a start and end date. But I don't think it's a problem.
+# I haven't seen that happen. 
+
+
+# uncomment to resave
+# saveRDS(all_providers, here("qcor/data/all_qcor_years_active_providers_clean.RDS"))
+
+
+```
+
+### Get the most recent provider detail
+
+```{r}
+#| label: create-master-provider
+
+
+unique_providers <- 
+   all_providers |> 
+  arrange ( ccn, year) |> 
+  group_by ( ccn ) |> 
+  mutate ( first_participation_date = min(begin_date, na.rm=TRUE), 
+           last_termination_date = if  ( all(is.na(termination_date) ) ) {  NA_Date_ } else { max(termination_date, na.rm=TRUE) }   , 
+           years_included = n(), 
+           certified_beds = max(certified_beds, na.rm=TRUE)
+         ) |>
+  slice_tail( n=1) |> 
+  ungroup() 
+  
+  
+  
+# saveRDS(unique_providers, here("qcor/data/qcor_provider_master.RDS"))
+
+
+
+
+```

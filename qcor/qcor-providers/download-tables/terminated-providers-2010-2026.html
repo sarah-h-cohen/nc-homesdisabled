@@ -1,0 +1,2435 @@
+<html lang="en"><head>
+  <script src="https://qnetmatomo.cms.gov/plugins/HeatmapSessionRecording/configs.php?idsite=28&amp;trackerid=p6NTFA&amp;url=https%3A%2F%2Fqcor.cms.gov%2Fmean_days.jsp%3Fwhich%3D2%26report%3Dmean_days.jsp" async="" defer=""></script><script src="chrome-extension://gkkcgbepkkhfnnjolcaggogkjodmlpkh/assets/content-main-world.ts-AyIWFy1P.js" type="module"></script></head><body><div id="skip"><a href="#maincontent">Skip to main content</a></div>
+  <title>S&amp;C QCOR</title>
+  <meta name="level 11 half-elf multi-classed programmer/rogue HT Gold" content="Sasnode, Wizard page">
+
+  <script async="" src="https://qnetmatomo.cms.gov/js/container_bmKTK32B.js"></script><script language="JavaScript" src="./includes/js_functions.js" type="text/javascript"></script>
+  
+
+
+
+  
+
+  <script type="text/javascript" language="javascript">
+<!--
+
+    function doSubmit(which, rgn, state, county, sYear, accred, provider_num)
+    {
+      if (which == 'year_type')
+      {
+        document.actives.action = document.actives.action + '#pagetop';
+        document.actives.qtr.selectedIndex = 0;
+        document.actives.submit();
+      }
+      else if (which == 'year')
+      {
+        document.actives.action = document.actives.action + '#pagetop';
+        document.actives.submit();
+      }
+      else if (which == 'qtr')
+      {
+        document.actives.action = document.actives.action + '#pagetop';
+        document.actives.submit();
+      }
+      else if (which == 'rgn')
+      {
+        if (rgn == document.actives.region_exp.value)
+        {
+          document.actives.action = document.actives.action + '#pagetop';
+          document.actives.region_exp.value = '';
+          document.actives.state_exp.value = '';
+          document.actives.county_exp.value = '';
+        }
+        else
+        {
+          document.actives.action = document.actives.action + '#R' + rgn;
+          document.actives.region_exp.value = rgn;
+          document.actives.state_exp.value = '';
+          document.actives.county_exp.value = '';
+        }
+        document.actives.submit();
+      }
+      else if (which == 'state')
+      {
+        if (state == document.actives.state_exp.value)
+        {
+          document.actives.action = document.actives.action + '#pagetop';
+          document.actives.state_exp.value = '';
+          document.actives.county_exp.value = '';
+        }
+        else
+        {
+          document.actives.action = document.actives.action + '#S' + state;
+          document.actives.state_exp.value = state;
+          document.actives.county_exp.value = '';
+        }
+        document.actives.submit();
+      }
+      else if (which == 'county')
+      {
+        if (county == document.actives.county_exp.value)
+        {
+          document.actives.action = document.actives.action + '#pagetop';
+          document.actives.county_exp.value = '';
+        }
+        else
+        {
+          document.actives.action = document.actives.action + '#C' + county;
+          document.actives.county_exp.value = county;
+        }
+        document.actives.submit();
+      }
+      else if (which == 'provider')
+      {
+        createPopUp("mean_days_popup.jsp?prvdr_intrnl_num=" + provider_num + "&year_value=" + sYear + "&jump=1&provider=11&which=2");
+      }
+      else if (which == 'national')
+      {
+        oldAction = document.actives.action;
+        document.actives.action = 'national_providers.jsp?which=2&report=mean_days.jsp';
+        document.actives.target = '_new';
+        document.actives.submit();
+        document.actives.target = '';
+        document.actives.action = oldAction;
+      }
+      else if (which == 'multiyear')
+      {
+        if (rgn == 1)
+          document.actives.multi_year.value = 'yes';
+        else
+          document.actives.multi_year.value = '';
+        document.actives.submit();
+      }
+      else if (which == 'sort')
+      {
+        document.actives.sort_by.value = rgn;
+        if (state != null)
+          document.actives.year.value = state;
+
+        document.actives.state_only.value = '1';
+        //alert(document.actives.year.value);
+        document.actives.submit();
+      }
+      else if (which == 'stateonly')
+      {
+        if (rgn == 1)
+          document.actives.state_only.value = '1';
+        else
+          document.actives.state_only.value = '0';
+        document.actives.submit();
+      }
+    }
+
+    //-->
+  </script>
+
+  
+  
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+
+
+<link href="./styles/hpms.css" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+
+
+  
+	  <!-- Matomo Tag Manager -->
+<script>
+  var _mtm = window._mtm = window._mtm || [];
+  _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+  (function() {
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://qnetmatomo.cms.gov/js/container_bmKTK32B.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Tag Manager -->
+
+
+
+
+  <table width="100%" border="0" cellspacing="0" cellpadding="0">
+    
+    
+
+
+
+
+
+<colgroup>
+	<col span="1" style="width: 140px;">
+	<col span="1">
+</colgroup>
+<tbody><tr>
+	<td rowspan="2" align="center" valign="middle" style="height: 55px; background-color: #ffffff;">
+	<a href="#d" title="Skip sitewide navigation"><span style="font-size: 1px; color: #ffffff; text-decoration: none;">d</span></a>
+	<a href="../../main.jsp">
+		<img src="./images/hpms_local_qcor_logo.gif" alt="QCOR:  Quality, Certification and Oversight Reports." border="0" width="120" height="55">
+	</a>
+	</td>
+	<td valign="middle" align="right" class="navlg">
+	S&amp;C QCOR&nbsp;&nbsp;
+	</td>
+</tr>
+
+<tr>
+	<td align="right" valign="middle" class="navsm">
+	<a class="navtop" href="main.jsp" title="S&amp;C QCOR - Home Page" onmouseover="self.status = 'Home';return true" onfocus="self.status = 'Home';return true" onmouseout="self.status = ''; return true" onblur="self.status = ''; return true">Home</a>
+	&nbsp;|&nbsp; 
+	<!--<a class="navtop" href="#" title="Opens in a new window" onMouseOver="self.status = 'MCO Contacts';return true" ONFOCUS="self.status = 'MCO Contacts';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true" onClick="createPopUp('?hnumber=null', 650, 480);">MCO Contacts</a>
+	&nbsp;|&nbsp;-->
+	<!--
+	<a class="navtop" href="#" title="CMP Tool" onMouseOver="self.status = 'CMP Tool';return true" ONFOCUS="self.status = 'CMP Tool';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true" onClick="createHelpPopUp('./cmp_tool/cmpCalculator.html', 450, 400);">CMP Tool</a>
+	&nbsp;|&nbsp;
+	-->
+	<a class="navtop" href="#" title="Help Page" onmouseover="self.status = 'Help';return true" onfocus="self.status = 'Help';return true" onmouseout="self.status = ''; return true" onblur="self.status = ''; return true" onclick="ShowOnePgHelp();">Help</a>
+	&nbsp;|&nbsp;
+	<a class="navtop" href="#" title="S&amp;C QCOR - Resources" onmouseover="self.status = 'Resources';return true" onfocus="self.status = 'Resources';return true" onmouseout="self.status = ''; return true" onblur="self.status = ''; return true" onclick="createHelpPopUp('QCOR_Resources', 450, 400);">Resources</a>
+	&nbsp;|&nbsp;
+	<a class="navtop" href="#" title="Frequently Asked Questions" onmouseover="self.status = 'FAQs';return true" onfocus="self.status = 'FAQs';return true" onmouseout="self.status = ''; return true" onblur="self.status = ''; return true" onclick="createHelpPopUp('./documents/QCOR_FAQs', 1010,595);">FAQs</a>
+	&nbsp;|&nbsp;
+	<a class="navtop" href="QCOR_Site_Map" title="S&amp;C QCOR - Site Map" onmouseover="self.status = 'Site Map';return true" onfocus="self.status = 'Site Map';return true" onmouseout="self.status = ''; return true" onblur="self.status = ''; return true">Site Map</a>
+	&nbsp;
+
+	</td>
+</tr>
+
+<!--<tr>-->
+	<tr>
+	<td colspan="2" align="right" class="navtop" style="height: 4px; background-color: #778899;">&nbsp;
+	
+
+	&nbsp;
+	
+
+	
+	</td>
+	</tr>
+<!--</tr>-->
+
+    <tr>
+      <td colspan="2" align="left" valign="top">
+        <a name="d"></a>
+      </td>
+    </tr>
+  </tbody></table>
+
+  
+  
+
+
+
+
+
+
+    <form name="pf" id="pf" action="https://qcor.cms.gov/mean_days.jsp?printer=true&amp;which=2&amp;report=mean_days.jsp&amp;provider_type=11&amp;begin_year=2010&amp;end_year=2026&amp;state_only=1&amp;region_exp=&amp;state_exp=&amp;county_exp=&amp;multi_year=yes&amp;accred=&amp;do_county=&amp;sort_by=1&amp;term_type=01%2C+02%2C+03%2C+04%2C+05%2C+06%2C+07&amp;extent_of_survey=&amp;hosp_free=&amp;swing=&amp;year_type=CY&amp;year=2010&amp;qtr=0" method="post" style="margin: 0px;">
+    
+        <input type="hidden" name="which" id="which" value="2">
+    
+        <input type="hidden" name="report" id="report" value="mean_days.jsp">
+    
+        <input type="hidden" name="provider_type" id="provider_type" value="11">
+    
+        <input type="hidden" name="begin_year" id="begin_year" value="2010">
+    
+        <input type="hidden" name="end_year" id="end_year" value="2026">
+    
+        <input type="hidden" name="state_only" id="state_only" value="1">
+    
+        <input type="hidden" name="region_exp" id="region_exp" value="">
+    
+        <input type="hidden" name="state_exp" id="state_exp" value="">
+    
+        <input type="hidden" name="county_exp" id="county_exp" value="">
+    
+        <input type="hidden" name="multi_year" id="multi_year" value="yes">
+    
+        <input type="hidden" name="accred" id="accred" value="">
+    
+        <input type="hidden" name="do_county" id="do_county" value="">
+    
+        <input type="hidden" name="sort_by" id="sort_by" value="1">
+    
+        <input type="hidden" name="term_type" id="term_type" value="01, 02, 03, 04, 05, 06, 07">
+    
+        <input type="hidden" name="extent_of_survey" id="extent_of_survey" value="">
+    
+        <input type="hidden" name="hosp_free" id="hosp_free" value="">
+    
+        <input type="hidden" name="swing" id="swing" value="">
+    
+        <input type="hidden" name="year_type" id="year_type" value="CY">
+    
+        <input type="hidden" name="year" id="year" value="2010">
+    
+        <input type="hidden" name="qtr" id="qtr" value="0">
+    
+        <div align="right" style="font-size: x-small; font-weight: bold; font-family: Verdana, Arial, sans-serif;">
+            <a href="#" data-dest="https://qcor.cms.gov/mean_days.jsp?printer=true&amp;which=2&amp;report=mean_days.jsp&amp;provider_type=11&amp;begin_year=2010&amp;end_year=2026&amp;state_only=1&amp;region_exp=&amp;state_exp=&amp;county_exp=&amp;multi_year=yes&amp;accred=&amp;do_county=&amp;sort_by=1&amp;term_type=01%2C+02%2C+03%2C+04%2C+05%2C+06%2C+07&amp;extent_of_survey=&amp;hosp_free=&amp;swing=&amp;year_type=CY&amp;year=2010&amp;qtr=0" onclick="document.actives.action=this.dataset.dest;document.actives.submit();return false;">Go to Text-Only Version</a>&nbsp;
+        </div>
+    </form>
+
+
+
+
+  <div class="margins">
+    
+
+    <!--R20 move from bottom of report screen to top
+    <hr>-->
+    <p>
+      <span class="goto">Go To:</span> <a href="report_select.jsp?which=2">Report Select Page</a>
+    </p>
+    <main id="maincontent" role="main" tabindex="-1"></main>
+    <h2>Terminated Provider Counts Report</h2>
+    <hr><span class="selectionTitle">Selection Criteria</span><br>
+    
+
+    <table>
+      <tbody><tr>
+      </tr><tr><th nowrap="" align="left" scope="row"><b>Provider and Supplier Type(s)</b>:</th>
+        <td>
+          Intermediate Care Facility-Individuals with Intellectual Disabilities
+		</td></tr>
+      <tr><th nowrap="" align="left" scope="row"><b>Termination Type(s)</b>:</th>
+        <td>
+          All
+	</td></tr>
+          
+    </tbody></table><hr>
+    <!--ul>
+    <li>which - 2</li>
+<li>report - mean_days.jsp</li>
+<li>provider_type - 11</li>
+<li>begin_year - 2010</li>
+<li>end_year - 2026</li>
+<li>state_only - 1</li>
+<li>region_exp - </li>
+<li>state_exp - </li>
+<li>county_exp - </li>
+<li>multi_year - yes</li>
+<li>accred - </li>
+<li>do_county - </li>
+<li>sort_by - 1</li>
+<li>term_type - 01, 02, 03, 04, 05, 06, 07</li>
+<li>extent_of_survey - </li>
+<li>hosp_free - </li>
+<li>swing - </li>
+<li>year_type - CY</li>
+<li>year - 2010</li>
+<li>qtr - 0</li>
+
+    </ul-->
+
+    <form name="actives" method="post" action="mean_days.jsp?which=2&amp;report=mean_days.jsp">
+      
+      <input type="hidden" name="provider_type" value="11">
+      
+
+      <input type="hidden" name="begin_year" value="2010">
+      <input type="hidden" name="end_year" value="2026">
+      <input type="hidden" name="state_only" value="1">
+      <input type="hidden" name="region_exp" value="">
+      <input type="hidden" name="state_exp" value="">
+      <input type="hidden" name="county_exp" value="">
+      <input type="hidden" name="multi_year" value="yes">
+      <input type="hidden" name="accred" value="">
+      <input type="hidden" name="do_county" value="">
+      <input type="hidden" name="sort_by" value="1">
+      
+      <input type="hidden" name="term_type" value="01, 02, 03, 04, 05, 06, 07">
+      
+
+      
+      <!-- setWizardCriteria (1) -->
+      <input type="hidden" name="extent_of_survey" value="">
+<input type="hidden" name="hosp_free" value="">
+<input type="hidden" name="swing" value="">
+
+      
+
+      
+      <p>
+
+        </p><table role="presentation">
+        <tbody>
+          <tr>
+        <td class="form"><a name="pagetop"></a><label for="year_type"><strong>Year Type</strong></label>:</td>
+        <td>
+          
+          <select name="year_type" id="year_type" onchange="doSubmit('year_type', 0, 0, 0, 0, 0);">
+            
+            <option value="CY" selected="">Calendar Year</option>
+            
+            <option value="FY">Fiscal Year</option>
+            
+          </select>
+          
+        </td>
+
+        
+        <td class="form"><label for="qtr"><strong>Month</strong></label>:</td>
+        
+        <td>
+          
+          <select name="qtr" id="qtr" onchange="doSubmit('qtr', 0, 0, 0, 0, 0);">
+            
+            <option value="0" selected="">Full Year</option>
+            
+            <option value="1">1</option>
+            
+            <option value="2">2</option>
+            
+            <option value="3">3</option>
+            
+            <option value="4">4</option>
+            
+            <option value="5">5</option>
+            
+            <option value="6">6</option>
+            
+            <option value="7">7</option>
+            
+            <option value="8">8</option>
+            
+            <option value="9">9</option>
+            
+            <option value="10">10</option>
+            
+            <option value="11">11</option>
+            
+            <option value="12">12</option>
+            
+          </select>
+          
+        </td>
+        
+        <td><a href="javascript: doSubmit('stateonly', 0, 0,0,0,0,0);">Return to Drill Down</a></td>
+        
+        <input type="hidden" name="year" id="year" value="2010">
+        <td><input type="button" name"multiyear"="" id="multiyear" value="Single-Year View" onclick="doSubmit('multiyear', 0, 0,0,0,0,0);"></td>
+          
+        </tr>
+        </tbody>
+      </table>
+    </form>
+
+
+    <table cellspacing="0" cellpadding="3" border="0" class="tabledata">
+      <caption>Terminated Provider Counts Report</caption>
+      <thead>
+        <tr class="colTitle">
+          
+          <th scope="col" class="center" rowspan="2">State</th>
+            
+          <th scope="col" class="center" colspan="34">Terminated Providers</th>
+            
+        </tr>
+        <tr class="colTitle">
+          			<th scope="col" class="center">
+
+            2010</th>
+            			<th scope="col" class="center">
+
+            2011</th>
+            			<th scope="col" class="center">
+
+            2012</th>
+            			<th scope="col" class="center">
+
+            2013</th>
+            			<th scope="col" class="center">
+
+            2014</th>
+            			<th scope="col" class="center">
+
+            2015</th>
+            			<th scope="col" class="center">
+
+            2016</th>
+            			<th scope="col" class="center">
+
+            2017</th>
+            			<th scope="col" class="center">
+
+            2018</th>
+            			<th scope="col" class="center">
+
+            2019</th>
+            			<th scope="col" class="center">
+
+            2020</th>
+            			<th scope="col" class="center">
+
+            2021</th>
+            			<th scope="col" class="center">
+
+            2022</th>
+            			<th scope="col" class="center">
+
+            2023</th>
+            			<th scope="col" class="center">
+
+            2024</th>
+            			<th scope="col" class="center">
+
+            2025</th>
+            			<th scope="col" class="center">
+
+            2026</th>
+            
+        </tr>
+      </thead>
+      <tbody>
+
+        <!-- 
+ SELECT 
+	R.cd_id, 
+	'(' || SUBSTR(R.cd_desc, 1, STRPOS(R.cd_desc, ' ') - 1) || ') ' || INITCAP(SUBSTR(R.cd_desc, STRPOS(R.cd_desc, ' ') + 1)) AS region, 
+		Q.year, 
+		COALESCE(COUNT(P.prvdr_intrnl_num),0) AS num_providers, 
+		COALESCE((EXTRACT(epoch FROM (DATE_TRUNC('day', AVG(P.trmntn_exprtn_dt - p.mx_srvy_dt))))/86400), 0) AS mean_days, 
+		A.NATIONAL_AVG 
+ FROM 
+	( 
+ 	SELECT 
+		COALESCE((EXTRACT(epoch FROM (DATE_TRUNC('day', AVG(P.trmntn_exprtn_dt - p.mx_srvy_dt))))/86400), 0) AS NATIONAL_AVG 
+	FROM 
+	csp_cms_rgn_cd R, 
+		provider_summary P, 
+		qtr_dates Q 
+	where 
+		Q.year BETWEEN '2010' AND '2026' 
+		AND Q.year_type = 'CY' 
+		AND Q.qtr = 0
+		AND P.prvdr_ctgry_cd IN ('11') 
+		AND P.trmntn_exprtn_dt IS NOT NULL 
+		AND TO_CHAR(P.trmntn_exprtn_dt, 'YYYY') = Q.year 
+		AND   P.trmntn_exprtn_dt BETWEEN q.start_dt and q.end_dt 
+	) A, 
+ 		csp_cms_rgn_cd R, 
+		provider_summary P, 
+		qtr_dates Q 
+	WHERE 
+		Q.year_type = 'CY' 
+		AND Q.year BETWEEN '2010' AND '2026' 
+		AND Q.qtr = 0
+		AND P.prvdr_ctgry_cd IN ('11') 
+		AND P.trmntn_exprtn_dt IS NOT NULL 
+		AND TO_CHAR(P.trmntn_exprtn_dt, 'YYYY') = Q.year 
+		AND   P.trmntn_exprtn_dt BETWEEN q.start_dt and q.end_dt 
+	AND R.cd_id = P.rgn_cd 
+	AND P.state_cd not in ('CN', 'FN', 'MX') 
+	GROUP BY 
+		Q.year, 
+	R.cd_id, 
+	R.cd_desc, 
+	A.NATIONAL_AVG 
+	ORDER BY 
+	cd_id, 
+		year 
+ -->
+<!-- 
+ SELECT 
+	ST.cd_id,  
+	INITCAP(ST.cd_desc) AS state,  
+		prov.year, 
+	COALESCE(prov.num_providers,0) AS num_providers, 
+	COALESCE(prov.mean_days,0) as mean_days, 
+	COALESCE(prov.national_avg,0) as national_avg 
+	FROM  
+	csp_state_cd ST,  
+	(SELECT 
+	p.state_cd,
+		Q.year, 
+		COALESCE(COUNT(P.prvdr_intrnl_num),0) AS num_providers, 
+		COALESCE((EXTRACT(epoch FROM (DATE_TRUNC('day', AVG(P.trmntn_exprtn_dt - p.mx_srvy_dt))))/86400), 0) AS mean_days, 
+		A.NATIONAL_AVG 
+ FROM 
+	( 
+ 	SELECT 
+		COALESCE((EXTRACT(epoch FROM (DATE_TRUNC('day', AVG(P.trmntn_exprtn_dt - p.mx_srvy_dt))))/86400), 0) AS NATIONAL_AVG 
+	FROM 
+		provider_summary P, 
+		qtr_dates Q 
+	where 
+		Q.year BETWEEN '2010' AND '2026' 
+		AND Q.year_type = 'CY' 
+		AND Q.qtr = 0
+		AND P.prvdr_ctgry_cd IN ('11') 
+		AND P.trmntn_exprtn_dt IS NOT NULL 
+		AND TO_CHAR(P.trmntn_exprtn_dt, 'YYYY') = Q.year 
+		AND   P.trmntn_exprtn_dt BETWEEN q.start_dt and q.end_dt 
+	) A, 
+ 		provider_summary P, 
+		qtr_dates Q 
+	WHERE 
+		Q.year_type = 'CY' 
+		AND Q.year BETWEEN '2010' AND '2026' 
+		AND Q.qtr = 0
+		AND P.prvdr_ctgry_cd IN ('11') 
+		AND P.trmntn_exprtn_dt IS NOT NULL 
+		AND TO_CHAR(P.trmntn_exprtn_dt, 'YYYY') = Q.year 
+		AND   P.trmntn_exprtn_dt BETWEEN q.start_dt and q.end_dt 
+	AND P.state_cd not in ('CN', 'FN', 'MX') 
+	GROUP BY 
+		Q.year, 
+	P.state_cd,  
+	A.NATIONAL_AVG) prov 
+	WHERE 
+	ST.cd_id = PROV.state_cd 
+	AND ST.cd_id not in ('CN', 'FN', 'MX') 
+	ORDER BY 
+	cd_desc, 
+		year 
+ -->
+
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SAL"></a>Alabama</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SAZ"></a>Arizona</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SAR"></a>Arkansas</td></tr></tbody></table></th>
+              
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SCA"></a>California</td></tr></tbody></table></th>
+              
+      <td class="right">19</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">18</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">28</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">36</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">35</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">31</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">17</td>
+      
+      <td class="right">16</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">1</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SCO"></a>Colorado</td></tr></tbody></table></th>
+              
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SCT"></a>Connecticut</td></tr></tbody></table></th>
+              
+      <td class="right">5</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SDC"></a>District Of Columbia</td></tr></tbody></table></th>
+              
+      <td class="right">6</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SFL"></a>Florida</td></tr></tbody></table></th>
+              
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SGA"></a>Georgia</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SHI"></a>Hawaii</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SID"></a>Idaho</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SIL"></a>Illinois</td></tr></tbody></table></th>
+              
+      <td class="right">2</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">30</td>
+      
+      <td class="right">22</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SIN"></a>Indiana</td></tr></tbody></table></th>
+              
+      <td class="right">33</td>
+      
+      <td class="right">19</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">39</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">17</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SIA"></a>Iowa</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">47</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">2</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SKS"></a>Kansas</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SLA"></a>Louisiana</td></tr></tbody></table></th>
+              
+      <td class="right">23</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">20</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">19</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">1</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SME"></a>Maine</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SMD"></a>Maryland</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SMA"></a>Massachusetts</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SMN"></a>Minnesota</td></tr></tbody></table></th>
+              
+      <td class="right">6</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">25</td>
+      
+      <td class="right">17</td>
+      
+      <td class="right">20</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">15</td>
+      
+      <td class="right">14</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SMS"></a>Mississippi</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SMO"></a>Missouri</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SMT"></a>Montana</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SNE"></a>Nebraska</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SNV"></a>Nevada</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SNJ"></a>New Jersey</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SNM"></a>New Mexico</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SNY"></a>New York</td></tr></tbody></table></th>
+              
+      <td class="right">9</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">72</td>
+      
+      <td class="right">76</td>
+      
+      <td class="right">64</td>
+      
+      <td class="right">24</td>
+      
+      <td class="right">39</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">14</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">14</td>
+      
+      <td class="right">3</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SND"></a>North Dakota</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SOH"></a>Ohio</td></tr></tbody></table></th>
+              
+      <td class="right">3</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">13</td>
+      
+      <td class="right">18</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">14</td>
+      
+      <td class="right">11</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">1</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SOK"></a>Oklahoma</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SPA"></a>Pennsylvania</td></tr></tbody></table></th>
+              
+      <td class="right">4</td>
+      
+      <td class="right">12</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">10</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SRI"></a>Rhode Island</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SSC"></a>South Carolina</td></tr></tbody></table></th>
+              
+      <td class="right">4</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="STN"></a>Tennessee</td></tr></tbody></table></th>
+              
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="STX"></a>Texas</td></tr></tbody></table></th>
+              
+      <td class="right">11</td>
+      
+      <td class="right">8</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">7</td>
+      
+      <td class="right">20</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">21</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">6</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">9</td>
+      
+      <td class="right">15</td>
+      
+      <td class="right">29</td>
+      
+      <td class="right">28</td>
+      
+      <td class="right">23</td>
+      
+      <td class="right">5</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SUT"></a>Utah</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SVT"></a>Vermont</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SVA"></a>Virginia</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SWA"></a>Washington</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">4</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SWV"></a>West Virginia</td></tr></tbody></table></th>
+              
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">5</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    
+    <tr>
+      
+      <th scope="row" class="left"><table cellspacing="0" cellpadding="0" border="0"><tbody><tr><td>&nbsp;&nbsp;&nbsp;&nbsp;</td><td style="font-weight: normal;"><a name="SWI"></a>Wisconsin</td></tr></tbody></table></th>
+              
+      <td class="right">1</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">1</td>
+      
+      <td class="right">2</td>
+      
+      <td class="right">3</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+      <td class="right">0</td>
+      
+    </tr>
+    
+    <tr class="colTitle">
+      
+      <th scope="row" class="left">National Total</th>
+        
+      <td class="right">131</td>
+      
+      <td class="right">109</td>
+      
+      <td class="right">96</td>
+      
+      <td class="right">99</td>
+      
+      <td class="right">116</td>
+      
+      <td class="right">196</td>
+      
+      <td class="right">192</td>
+      
+      <td class="right">179</td>
+      
+      <td class="right">155</td>
+      
+      <td class="right">166</td>
+      
+      <td class="right">72</td>
+      
+      <td class="right">140</td>
+      
+      <td class="right">185</td>
+      
+      <td class="right">149</td>
+      
+      <td class="right">114</td>
+      
+      <td class="right">96</td>
+      
+      <td class="right">16</td>
+      
+    </tr>
+  </tbody>
+</table>
+<p>
+</p>
+
+<p>
+  
+
+
+</p><form name="changecriteria" method="post" action="icfmr_wizard.jsp?which=2&amp;report=mean_days.jsp">
+  
+  <input type="hidden" name="provider_type" value="11">
+  
+  <input type="hidden" name="begin_year" value="2010">
+  <input type="hidden" name="end_year" value="2026">
+  <input type="hidden" name="year_type" value="CY">
+  <input type="hidden" name="multi_year" value="yes">
+  <input type="hidden" name="accred" value="">
+  
+  <!-- setWizardCriteria (2) -->
+  <input type="hidden" name="extent_of_survey" value="">
+<input type="hidden" name="hosp_free" value="">
+<input type="hidden" name="swing" value="">
+
+  <!-- R14 Req#678 exclude Change Criteria button from text-only page view -->
+  
+  <p>
+    <input type="submit" value="Change Criteria">
+  </p>
+  
+
+</form>
+
+
+
+
+<form name="getHelp" id="getHelp" method="post">
+<input type="hidden" name="mystring" id="mystring" value="15, 244, 15, 244, 12, 19, 268, ">
+<input type="hidden" name="mystring1" id="mystring1" value="103, ">
+<input type="hidden" name="mystring2" id="mystring2" value="207, 114, 321, ">
+<input type="hidden" name="myimage" id="myimage" value="">
+<input type="hidden" name="myreport" id="myreport" value="mean_days.jsp">
+</form>
+
+
+
+<hr>
+<p>
+
+  The data in these reports, including provider and supplier counts and percentages,
+  are valid for the subset of providers or suppliers for which there are survey records
+  in CASPER.
+ 
+  <br><br>
+  
+  Source: CASPER (06/14/2026)
+
+
+</p>
+
+<hr>
+<p align="center">
+	Please submit comments, questions, or suggestions by email to <a href="mailto:qcorhelp@exploredigits.com">qcorhelp@exploredigits.com</a>.
+	<br>
+	<br>
+	<a href="JavaScript:createPopUp('access.jsp');" title="QCOR Website Accessibility">Accessibility Information</a>, <a href="JavaScript:createPopUp('privacy.jsp');" title="Privacy Statement">Privacy &amp; Security</a>
+	<br>
+	<br>
+	<a href="http://www.adobe.com/products/acrobat/readstep2.html" target="_new" title="Download Adobe Reader">Download Adobe Reader</a>
+</p>
+
+
+
+</div>
+
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+
+
+</body></html>

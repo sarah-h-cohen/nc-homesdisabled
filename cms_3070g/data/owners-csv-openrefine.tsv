@@ -1,0 +1,263 @@
+type_of_ownership	translated_owner_type	n
+Private (non-profit)	Non-profit	24630
+Private (proprietary)	Investor-owned	19817
+State	State	1953
+CORPORATION	Investor-owned	555
+County	Local & quasi-government	414
+NA	Unknown	383
+LLC	Investor-owned	95
+NON PROFIT CORP	Non-profit	87
+CORP	Investor-owned	68
+City/Town	Local & quasi-government	63
+MHMR	Local & quasi-government	61
+LIMITED LIABILITY CO	Investor-owned	49
+City/County	Local & quasi-government	38
+QUASI-GOVT	Local & quasi-government	35
+NON PROFIT	Non-profit	29
+S CORP	Investor-owned	28
+PARTNERSHIP	Investor-owned	26
+PROFIT	Investor-owned	26
+COMMUNITY MHMR	Local & quasi-government	23
+QUASI GOVERNMENTAL	Local & quasi-government	23
+S-CORP	Investor-owned	20
+CSB	Local & quasi-government	16
+QUASI-GOV NONPROFIT	Non-profit	16
+INCORPORATION	Investor-owned	15
+CORP./PROFIT	Investor-owned	14
+QUASI GOVERNMENT	Local & quasi-government	14
+COMMUNITY CENTER	Local & quasi-government	12
+PROFIT CORPORATION	Investor-owned	12
+S CORPORATION	Investor-owned	11
+CONTRACT MANAGEMENT	Unknown	10
+QUASI-GOV. NONPROFIT	Non-profit	10
+QUASI-GOVERNMENTAL	Local & quasi-government	10
+LOCAL PUBLIC AGENCY	Local & quasi-government	9
+QUASI-GOV	Local & quasi-government	9
+FOR PROFIT	Investor-owned	8
+INCORPORATED	Investor-owned	8
+PUBLIC NON PROFIT	Non-profit	8
+CHARITABLE NONPROFIT	Non-profit	7
+CORP. / PROFIT	Investor-owned	7
+QUASI GOV	Local & quasi-government	7
+Corporation	Investor-owned	6
+DDSN CONTRACTED PROV	Unknown	6
+LIDDA	Local & quasi-government	6
+NON-PROFIT CORP	Non-profit	6
+COMMUNITY LIDDA	Local & quasi-government	5
+CORP.	Investor-owned	5
+GENERAL PARTNERSHIP	Investor-owned	5
+NON PROFIT CORPORATI	Non-profit	5
+PRIVATE CORPORATION	Investor-owned	5
+QUASI-GOV, NONPROFIT	Non-profit	5
+S-CORPORATION	Investor-owned	5
+COMMUNITY SERV BOARD	Local & quasi-government	4
+FOR PROFIT CORP	Investor-owned	4
+LOCAL GOVERNMENT	Local & quasi-government	4
+NON PROFIT DSN BOARD	Non-profit	4
+PUBLIC NON-PROFIT	Non-profit	4
+QUASI GOV NON PROFIT	Non-profit	4
+COMMUNITY SERVICE BO	Local & quasi-government	3
+CONTRACT MGMT SCDDSN	Unknown	3
+CONTRACT MGT SCDDSN	Unknown	3
+COPORATION	Investor-owned	3
+CORORATION	Investor-owned	3
+CORP/PROFIT	Investor-owned	3
+CORPORATE	Investor-owned	3
+FOR PROFIT- PUBLIC	Investor-owned	3
+GOVERNMENT	Local & quasi-government	3
+LIMITED LIABILITY	Investor-owned	3
+NOT FOR PROFIT	Non-profit	3
+PRIVATE FOR PROFIT	Investor-owned	3
+PROFIT CORP	Investor-owned	3
+QUASI-GOV NON PROFIT	Non-profit	3
+WTCSB	Unknown	3
+COMM SERV BOARD	Local & quasi-government	2
+COMMUNITY MRA	Local & quasi-government	2
+COMMUNITY SERVICES B	Local & quasi-government	2
+COMMUNITY SVCS BOARD	Local & quasi-government	2
+CONTRACT MGMT DDSN	Unknown	2
+CONTRACT MNGMNT SCDD	Unknown	2
+CONTRACT SCDDSN	Unknown	2
+CONTRACT WITH SCDDSN	Unknown	2
+CORP / PROFIT	Investor-owned	2
+CORP./ PROFIT	Investor-owned	2
+FOR PROFIT CORPORATI	Investor-owned	2
+LOCAL AUTHORITY	Local & quasi-government	2
+MH-ID	Unknown	2
+POLITICAL SUBDIVISIO	Unknown	2
+PRIVATE PROFIT	Investor-owned	2
+QUASI GOVERMENTAL	Local & quasi-government	2
+QUASI GOVERNMENTAL N	Local & quasi-government	2
+QUASIGOVERNMENTAL	Local & quasi-government	2
+QUISA GOVERNMENT	Local & quasi-government	2
+S-CORPT	Investor-owned	2
+S-Corporation	Investor-owned	2
+S. CORP	Investor-owned	2
+SOLE PROPRIETORSHIP	Investor-owned	2
+STATE OF OKLAHOMA	State	2
+corporation	Investor-owned	2
+(LLC) CORPORATION	Investor-owned	1
+AGENCY OF LOCAL GOVT	Local & quasi-government	1
+BFF CORP	Investor-owned	1
+BURTON CENTER-DDSN	Local & quasi-government	1
+C-CORP	Investor-owned	1
+C-CORPORATION	Investor-owned	1
+C. CORP	Investor-owned	1
+CERTIFIED BY STATE	Unknown	1
+CHARITABLE CORP	Non-profit	1
+COMM SERVICES BOARD	Local & quasi-government	1
+COMMUITY LIDDA	Local & quasi-government	1
+COMMUITY MHMR	Local & quasi-government	1
+COMMUNITY	Local & quasi-government	1
+COMMUNITY BOARD	Local & quasi-government	1
+COMMUNITY MH/ID	Local & quasi-government	1
+COMMUNITY SRV BOARD	Local & quasi-government	1
+COMMUNITY SRVC BOARD	Local & quasi-government	1
+COMMUNITY SVCE BOARD	Local & quasi-government	1
+CONTRACT MGMNT DDSN	Unknown	1
+CONTRACT MGMT W SCDD	Unknown	1
+CONTRACT MGMT. SCDDS	Unknown	1
+CONTRACT MGMT:SCDDSN	Unknown	1
+CONTRACT MGT DDSN	Unknown	1
+CONTRACT MNGMNT	Unknown	1
+CONTRACT W/ SCDDSN	Unknown	1
+COR	Investor-owned	1
+COROPTATION	Investor-owned	1
+CORP, NON-PROFIT	Non-profit	1
+CORP-NON PROFIT	Non-profit	1
+CORP-NONPROFIT	Non-profit	1
+CORP. - NON- PROFIT	Non-profit	1
+CORP. /PROFIT	Investor-owned	1
+CORP. PROFIT	Investor-owned	1
+CORPARATION	Investor-owned	1
+CORPATION	Investor-owned	1
+CORPERATION	Investor-owned	1
+CORPERATION FOR PROF	Investor-owned	1
+CORPERATION PROFIT	Investor-owned	1
+CORPORAION	Investor-owned	1
+CORPORATE NON PROFIT	Non-profit	1
+CORPORATE NONPROFIT	Non-profit	1
+CORPORATE PRIVATE	Investor-owned	1
+CORPORATION (PROFIT)	Investor-owned	1
+CORPORATION - PROFIT	Investor-owned	1
+CORPORATION / PROFIT	Investor-owned	1
+CORPORATION NON PROF	Non-profit	1
+CORPORATION NON-PROF	Non-profit	1
+CORPORATION PROFIT	Investor-owned	1
+CORPORATION, NON-PRO	Non-profit	1
+CORPORATION-NON-PROF	Non-profit	1
+CORPORATION-NONPROFI	Non-profit	1
+CORPORATION-PROFIT	Investor-owned	1
+CORPORATION/NONPROFI	Non-profit	1
+CORPOREATION, NON-PR	Non-profit	1
+CORPORTATION	Investor-owned	1
+CORPPORATION	Investor-owned	1
+COUNTY/GOVERNMENT	Local & quasi-government	1
+Contract Management w/	Unknown	1
+Corp	Investor-owned	1
+DDSN CONTRACT PROV.	Unknown	1
+DDSN CONTRACTED	Unknown	1
+DDSN-BURTON CENTER	Unknown	1
+DSN BOARD NON PROFIT	Non-profit	1
+DSNB	Unknown	1
+FOR PROFIC CORPORATI	Investor-owned	1
+FOR PROFIT CORP.	Investor-owned	1
+FOR-PROFIT CORP	Investor-owned	1
+FUNDAMENTAL	Unknown	1
+GENRAL PARTNERSHIP	Investor-owned	1
+ICF/MR	Unknown	1
+INC. NON PROFIT	Non-profit	1
+INCORPORATE	Investor-owned	1
+Incorporated	Investor-owned	1
+LIMITED LIABIITY COO	Investor-owned	1
+LIMITED LIABIITY COR	Investor-owned	1
+LIMITED LIABLITY	Investor-owned	1
+LIMITED LIBILITY	Investor-owned	1
+LIMITIED LIABILITY C	Investor-owned	1
+LLB	Investor-owned	1
+LOCAL GOVERNMENT CSB	Local & quasi-government	1
+LOCAL MHMR	Local & quasi-government	1
+Local Public Agency	Local & quasi-government	1
+MHMR (GOVERNMENT)	Local & quasi-government	1
+MHMR CENTER	Local & quasi-government	1
+MHMR OF TARRANT CO	Local & quasi-government	1
+MHR	Unknown	1
+MR/IID	Unknown	1
+N	Unknown	1
+NO PROFIT CORP	Non-profit	1
+NON PROF DSNB	Non-profit	1
+NON PROFIT COPP	Non-profit	1
+NON PROFIT COPRP	Non-profit	1
+NON PROFIT CORB	Non-profit	1
+NON PROFIT LOCAL MRA	Non-profit	1
+NON PROFIT PRIVATE	Non-profit	1
+NON PROFIT-DSN BOARD	Non-profit	1
+NON-PROFIT	Non-profit	1
+NON-PROFIT COMPANY	Non-profit	1
+NON-PROFIT CORPORATI	Non-profit	1
+NOT FILLED OUT ON RE	Unknown	1
+NOT GIVEN	Unknown	1
+PARNERSHIP	Investor-owned	1
+POL. SUB OF STATE	State	1
+PRIVALTE (FOR PROFIT	Investor-owned	1
+PRIVATE	Investor-owned	1
+PRIVATE - FOR PROFIT	Investor-owned	1
+PRIVATE COORPORATION	Investor-owned	1
+PRIVATE CORP	Investor-owned	1
+PROFIT  CORPORATION	Investor-owned	1
+PROFIT COMRPORATION	Investor-owned	1
+PROFIT CORPORAT/DY	Investor-owned	1
+PROFIT CORPORTATION	Investor-owned	1
+PROFIT ORGANIZATION	Investor-owned	1
+PROFIT,  CORPORATION	Investor-owned	1
+PROGIT/COROPATION	Investor-owned	1
+PUBLIC FOR PROFIT	Investor-owned	1
+PUBLIC NONPROFIT	Non-profit	1
+PUBLIC, NON PROFIT	Non-profit	1
+PUBLIC-NON PROFIT	Non-profit	1
+PUBLIC/NON PROFIT	Non-profit	1
+PUBLIC/NONPROFIT	Non-profit	1
+PUBLICLY TRADED	Investor-owned	1
+Partnership	Investor-owned	1
+Profit Corporation	Investor-owned	1
+Public Non-Profit	Non-profit	1
+QAISI GOVERNMENTAL	Local & quasi-government	1
+QASI-GOV. NONPROFIT	Non-profit	1
+QUADI-GOV NONPROFIT	Non-profit	1
+QUASI - GOVERNMENTAL	Local & quasi-government	1
+QUASI GOV NONPROFIT	Non-profit	1
+QUASI GOV. NONPROFIT	Non-profit	1
+QUASI GOVENMENT	Local & quasi-government	1
+QUASI GOVENMENTAL NO	Local & quasi-government	1
+QUASI GOVERMENT	Local & quasi-government	1
+QUASI GOVERNMENTA.	Local & quasi-government	1
+QUASI GOVT NON PROFI	Non-profit	1
+QUASI GOVT NON-PROFI	Non-profit	1
+QUASI GOVT NONPROFIT	Non-profit	1
+QUASI GOVT, NONPROFI	Non-profit	1
+QUASI- GOV NONPROFIT	Non-profit	1
+QUASI- GPVERNMENTAL	Local & quasi-government	1
+QUASI-GOV NONRPOFIT	Non-profit	1
+QUASI-GOV.NONPROFIT	Non-profit	1
+QUASI-GOVERMENTAL	Local & quasi-government	1
+QUASI-GOVT NONPROFIT	Non-profit	1
+QUASIGIVERMENTAL	Local & quasi-government	1
+QUASU GOVERNMENTAL	Local & quasi-government	1
+QUISA GOVERNMENTAL	Local & quasi-government	1
+QUISA-GOV NON PROFIT	Non-profit	1
+QUISA-GOVERNMENTAL	Local & quasi-government	1
+QUISA-GOVT NON PROFI	Non-profit	1
+S Corporation	Investor-owned	1
+S-Corp (for profit)	Investor-owned	1
+S. CORPORATION	Investor-owned	1
+SCDDN CONTRACT MGMT	Unknown	1
+SCDDSN	Unknown	1
+SCDDW CONTRACT MANAG	Unknown	1
+STATE	State	1
+STATE AGENCY	State	1
+TYLER REX	Unknown	1
+UNINCORPORATED ASSOC	Unknown	1
+UNLIMITED LIABILITY	Investor-owned	1
+V	Unknown	1
+corp	Investor-owned	1
+corp project	Investor-owned	1

@@ -1,0 +1,342 @@
+---
+title: "ICF trends"
+author: "Sarah Cohen"
+date: last-modified
+format:
+    html:
+        theme: [sandstone, ../custom.scss]
+        toc: false
+        embed-resources: true
+        code-fold: true
+        code-tools: true
+        page-layout: full
+execute:
+    echo: false
+    warning: false
+    message: false
+    error: true
+    cache: false
+    include: true
+    eval: true
+engine: knitr
+---
+
+
+North Carolina is one of only 5 states in which both the number of providers and beds rose since 2010.  It also has a relatively high number of beds per 100,000 people in the state.
+
+
+(This is sorted on the change in the number of beds. Click on the heading to re-sort another way.)
+
+```{r}
+#| label: setup
+#| output: false
+
+pacman::p_load("tidyverse", "ggplot2", "dplyr", "readr", "lubridate", "scales", "ggthemes", "gt", "gtExtras", "here", "glue", "reactable", "reactablefmtr", "tigris", "tidycensus")
+here::i_am("analysis/qcor_compare_years.qmd")
+
+
+# census API key is already installed. 
+# just need to get the variable I want: 
+# load_variables(2020, "dp") # this is the demographic profile DP1_0001C
+# load_variables(2020, "pl") # this is redistricting data  P1_001N
+
+```
+
+<!-- the key here is uncount(), which expands a range into rows -->
+
+```{r}
+#| label: get-annual-counts
+#| warning: false
+
+all_providers <-
+  readRDS(here("qcor/data/all_qcor_years_active_providers_clean.RDS")) |> 
+  select ( ccn, provider_name, city, state, ownership_type, certified_beds,
+           begin_date, termination_date, 
+           year) |> 
+  arrange ( ccn, year)
+
+```
+
+
+
+```{r}
+#| label: aggregate-states
+
+state_year_sum <- 
+  all_providers |> 
+  summarize ( providers = n(), beds = sum(certified_beds, na.rm=TRUE), .by = c("state", "year") ) |> 
+  complete ( state, year, fill = list( providers=0, beds = 0))
+  
+  
+state_sum <- 
+  state_year_sum |> 
+  group_by ( state) |> 
+  # do this before filling it out.
+  mutate ( bed_list = list( as.integer(beds )), provider_ct = list(as.integer(providers)) ) |> 
+  mutate ( n_change = providers[year==2026]-providers[year==2010], 
+           bed_change = beds[year==2026]-beds[year==2010]
+    ) |>
+  slice_tail ( n=1) |> 
+  ungroup() |> 
+  select ( state, num_providers_2026 = providers, n_change, num_beds_2026 = beds, bed_change,  bed_list, provider_ct) |> 
+  left_join ( fips_codes |> distinct ( state, state_code, state_name) , 
+              join_by ( state == state))
+
+
+
+```
+
+
+```{r}
+#| label: get-pop
+#| message: false
+#| warning: false
+
+options (scipen=999)
+state_pops <- get_decennial(geography="state", variables = c("P1_001N")) |> 
+  mutate ( pop_2020 = as.integer(value)) |> 
+  select ( state_code = GEOID, pop_2020 )
+
+state_sums_with_pops <- 
+  state_sum |> 
+  left_join ( state_pops, join_by ( state_code == state_code)) |> 
+  mutate ( 
+           beds_per_100k = round( num_beds_2026 / pop_2020 * 100000, 1),
+           providers_per_100k = round( num_providers_2026 / pop_2020 * 100000, 1)
+  )
+
+
+write_csv( state_sums_with_pops, here("state_sums.csv"))
+
+
+
+```
+
+```{r}
+#| label: chart-data
+
+icon_names <- c("arrow-up", "minus", "arrow-down")
+icon_colors <- status_colors <- c(
+  "#9b1313",  # red for status_code 1 (arrow-up)
+  "#d4af37",  # yellow for status_code 2 (minus)
+  "#16ae8c"   # green for status_code 3 (arrow-down)
+)
+
+react_data <-
+  state_sums_with_pops |>
+  mutate(
+    n_code = case_when(
+      n_change > 0 ~ 1L,  
+      n_change == 0 ~ 2L, 
+      n_change < 0 ~ 3L   
+    ),
+
+    bed_code = case_when(
+      bed_change > 0 ~ 1L,
+      bed_change == 0 ~ 2L,
+      bed_change < 0 ~ 3L
+    ),
+
+    status_code = case_when(
+      when_all(n_change > 0 , bed_change > 0 ) ~ 1L,
+      when_all (n_change < 0 , bed_change < 0 ) ~ 3L,
+      .default =  2L
+    ),
+
+    # did this separately for each for debugging, could switch to across()
+    across ( n_code:status_code, \(x) icon_names[x], .names = "{.col}_icon" )
+  ) |> 
+
+  select(
+    status = status_code, status_code_icon, state_name, num_providers_2026,
+    n_change,
+    provider_ct, providers_per_100k, n_code, n_code_icon, 
+    num_beds_2026, bed_change,  beds_per_100k, 
+    bed_code, bed_code_icon, bed_list  
+  ) |> 
+  arrange ( desc ( bed_change))
+
+# glimpse(react_data)
+
+```
+
+
+<!-- I messed around for a long time trying to set the colors of the icons. You have to create another column in the data frame for each thing you want the colors to refer to, and I didn't
+feel like doing that, so I'm just using static ones that then are colored differently in different columns. Oh well. What a pain. -->
+
+
+
+```{r}
+#| label: make-chart
+#| eval: true
+
+
+react_data |> 
+  reactable (
+    #table options
+    defaultPageSize=25,
+    showPageSizeOptions = TRUE,
+    theme = nytimes(),
+     rowStyle = function(index) {
+        state <- react_data$state_name[index]
+        if (state == "North Carolina") {
+            list(fontWeight = "bold", background = "rgba(0, 115, 158 , .1)")
+        }
+    },
+    
+    # go column by column
+    columns  = list (
+ 
+      # overall status - icon only
+      status = colDef( 
+        name = "",
+        cell = icon_sets(
+          data = react_data, 
+          icon_ref = "status_code_icon", 
+          colors = "darkred",
+          icon_position = "over"
+        ), 
+        maxWidth = 30,
+        align = "center"
+      ), 
+ 
+              
+        # state name - want to highlight NC
+      state_name = colDef ( name = "State" , sortable=TRUE, minWidth=75, maxWidth=125),
+        
+        # simple number of providers formatted
+      num_providers_2026 = colDef ( 
+        name = "# providers 2026", 
+        sortable=TRUE,
+        maxWidth = 50,
+        format = colFormat(separators = TRUE,  digits=0)
+      ), 
+        
+      n_change = colDef(
+        name = "Change since 2010",
+        sortable = TRUE,
+        format = colFormat(separators = TRUE, digits = 0), 
+        maxWidth = 75
+      ), 
+
+        # data bar of providers per 100k
+      providers_per_100k = colDef (
+        name = " per 100k pop",
+        cell = data_bars (
+           data = react_data, 
+           fill_color = viridis::mako(5),
+           background = '#F1F1F1',
+           text_position = 'outside-end'
+        ), 
+        maxWidth=100, 
+        style = "margin-left:20px;"
+      ), 
+        
+        # sparkline of providers over time
+      provider_ct = colDef ( 
+        name = "Providers", 
+        cell = react_sparkline(
+              data = react_data,
+              height = 50,
+              line_width = 1.5,
+              line_color = '#F5A24B',
+              labels = c("first", "last"),
+              label_size = '0.9em',
+              margin = reactablefmtr::margin(t = 15, r = 30, b = 15, l = 30),
+              tooltip_type = 2
+          ) ,
+        maxWidth = 175, 
+        minWidth = 150
+      ), 
+
+      # simple # beds formatted
+      num_beds_2026 = colDef ( 
+          name = "Beds 2026", 
+          sortable=TRUE,
+          maxWidth = 75,
+          format = colFormat(separators = TRUE,  digits=0)
+        ), 
+      
+      # change in beds
+      bed_change = colDef ( 
+          name = "Change since 2010", 
+          sortable=TRUE,
+          maxWidth = 75,
+          format = colFormat(separators = TRUE,  digits=0)
+        ),
+
+      # data bar of beds per 100k
+      beds_per_100k = colDef (
+          name = " per 100k pop",
+          cell = data_bars (
+                  data = react_data, 
+                   fill_color = viridis::mako(5),
+                    background = '#F1F1F1',
+                    text_position = 'outside-end'
+                  ), 
+                  maxWidth=100, 
+                  style = "margin-left:20px;"
+        ), 
+      
+      # sparkline of bed over time
+      bed_list = colDef ( 
+          name = "Beds", 
+          cell = react_sparkline(
+                data = react_data,
+                height = 50,
+                line_width = 1.5,
+                line_color = '#4C95D4',
+                labels = c("first", "last"),
+                label_size = '0.9em',
+                margin = reactablefmtr::margin(t = 15, r = 35, b = 15, l = 35),
+                tooltip_type = 2
+              ) ,
+        maxWidth = 175, 
+        minWidth = 150
+      ) , 
+      bed_code_icon = colDef (show=FALSE),
+      n_code_icon = colDef(show=FALSE), 
+      status_code_icon = colDef (show=FALSE), 
+      n_code = colDef ( show=FALSE), 
+      bed_code  = colDef (show=FALSE)
+
+    # end of columns
+    )
+
+  # end of reactable
+  )
+
+
+
+
+```
+
+
+
+<i class="fa-solid fa-arrow-down" style="color:darkred;"></i> Beds and providers fell<br>
+<i class="fa-solid fa-minus" style="color:darkred;"></i> Either beds or providers decreased / stayed the same<br>
+<i class="fa-solid fa-arrow-up" style="color:darkred;"></i> Both beds and providers rose<br>
+
+
+Source: [CMS provider files](https://qcor.cms.gov/Active_ICF-IIDs) for 2010-2026 downloaded 6/23/2026 ; Decennial Census used for populations.
+
+
+
+```{r}
+#| label: save-google-sheet
+#| output: false
+#| warning: false
+#| message: false
+
+# for some reason, it still thinks there is a grouping of some kind when it tries to write the sheets. I have no idea why. 
+
+all_providers |> 
+  summarize ( providers = n(), beds = sum(certified_beds, na.rm=TRUE), .by = c("state", "year", "ownership_type") ) |> 
+  complete ( state, year, ownership_type, fill = list( providers=0, beds = 0)) |> 
+  ungroup() |> 
+  googlesheets4::write_sheet( ss="1kjp0Czgbtwf0lDuBc-sIo6aYcSjcyiek4OS2vJ-WGhU", sheet="state_year_ownership_sum")
+
+
+
+
+```

@@ -1,0 +1,132 @@
+---
+title: "Get the links to the inspections by facility"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-fold: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+The North Carolina public records are accessed through a unique identifier that is not related to either the NPI or the Medicaid CCN. There are a lot of facilities on the list that aren't ICF's -- they include group homes and other facilities, not just ICF's.
+
+## Scrape NC public records links
+
+Start here: <https://info.ncdhhs.gov/dhsr/mhlcs/sods/searchpopup.asp> and just hit "Search" . There's no way to limit it to just ICF's.
+
+```{r}
+library(httr2)
+library(rvest)
+library(tidyverse)
+
+
+response <- request("https://info.ncdhhs.gov/dhsr/mhlcs/sods/results.asp") |>
+  req_method("POST") |>
+  req_body_form(
+    bUnsavedChanges = "False",
+    cmbCounty = "ALL",
+    txtcity = "",
+    txtfacname = ""
+  ) |>
+  req_perform()
+
+
+html <- response |>
+  resp_body_html()
+
+county_sections <- html |>
+  html_elements("div.section")
+
+
+parse_county <- function ( section ) {
+    county <- section |>  html_element("h3") |> html_text2()
+    table <- section |>  html_element("table.dataTable")
+    facilities <- table |> html_table()
+    links <- table |>  html_elements("a") |> html_attr("href")
+
+    facilities |> 
+        mutate ( county = county,
+                 linkid = links |> str_extract("\\d+$"), 
+                 site_zip = as.character(`Zip Code`) 
+        ) |> 
+    janitor::clean_names()
+
+}
+
+all_counties <- map ( county_sections, \(c) parse_county (c)) |> list_rbind()
+
+saveRDS(all_counties, "nc_pub_records_links.RDS")
+
+
+
+```
+
+This is a list of all of the facilities, not just ICF's . We need to match this back to the ICF list. We don't think any have closed in recent years, so we don't have to worry about missing the ICFs.
+
+Google sheet with the names and addresses:
+
+```{r}
+
+
+
+```
+
+## Match ICFs
+
+```{r}
+
+
+icf_nc  <- readxl::read_excel("icfmr.xlsx") |> 
+    janitor::clean_names() 
+    
+
+standardize_name <- function ( orig) {
+    orig |> 
+        str_to_lower() |> 
+        str_replace_all ("[.,-/]", " ") |> 
+        str_squish() |> 
+        str_trim()
+
+}
+
+standardize_name ( "Ralph Scott Lifeservices,  inc.")
+
+
+
+# there were some duplicates in the rows, but the only thing different are row numbers. Some are day programs, I think. 
+
+std_icfs <- 
+    icf_nc |> 
+    distinct (  dba_name, site_zip, facility_address, license_number, ccn_number)   |> 
+    mutate ( standard_name = standardize_name ( dba_name))
+
+std_records <- 
+    all_counties |> 
+    mutate ( standard_name = standardize_name ( name))
+
+
+exact_matches <- 
+    std_icfs |> 
+    inner_join ( std_records, join_by (standard_name == standard_name, site_zip == site_zip))  |> 
+    group_by ( linkid , license_number, ccn_number) |>
+    slice_tail ( n=1) |> 
+    ungroup( ) 
+
+
+```
+
+From here, we can create another spreadsheet with the inspection page linked from the licenses. I'll come back to that later.

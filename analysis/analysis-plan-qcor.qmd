@@ -1,0 +1,147 @@
+---
+title: "Regulatory background - state and federal"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-fold: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+## Sources
+
+### 3070G
+
+Forms filled out by the facilities and provided to the states, which forward them to CMS. There are 6553 facilities in this dataset, spanning five years ending in 2025 (?)
+
+-   self-reported staff, abuse and neglect complaints, and deaths. A quick analysis suggests that it is really under-reported. We might be able to use that to our advantage.
+
+-   Staff numbers are way off. Some are inflated by 10x , others deflated to 1/10th. I don't know of a good way to find mistakes from actual changes, though I can guess which ones are right and wrong.
+
+-   It's the only cms data with the name of an organization. This is where we'd start on the ownership issue nationally, though we have better information on it from North Carolina.
+
+-   Contains annual survey dates, allowing us to distinguish QCOR annual inspections from others.
+
+-   Has some information on the severity of the disabilities among the clients.
+
+### QCOR
+
+Results of surveys (annual, special and complaint) from 2010-may 2026. Includes ?? facilities. There are no organization names in the files.
+
+-   Type of survey (standard, special or complaint)
+
+-   Deficiencies by code and group name. We can match the code to the instruction manual to get more detailed descriptions. (See parsed version of the codes. The codes are missing the "E" codes, which are for emergency preparedness.)
+
+### North Carolina
+
+NC has good ownership data, but we don't have the same thing for other states. Historically, we have the Buzzfeed data that has ownership for several states as of about 2021, but not the whole country.
+
+### NPPES / NPI / Medicaid spending
+
+This isn't very useful to us, because they have different NPI's, and the government censors anything with fewer than something like 20 clients every month. Hardly any have that.
+
+## Questions
+
+1.  For RHA large facilities, say over 100 clients: Are there similar privately owned facilities like this elsewhere? We think this is pretty rare. But if they do exist elsewhere, how do they compare?
+
+2.  Overall, for private-owned facilities of similar sizes, what happens differently in NC than other places?
+
+-   Complaint surveys - do they find violations ? Are there more or less?
+-   Followups - what happens in them?
+-   Adherence to annual scheduled surveys
+-   Specific issues: staffing, abuse/neglect investigations,
+
+::: callout-note
+Be a little careful about other states -- many of them saw very fast declining numbers of beds and facilities over the last 20 years. If we stick to the last 5 years or so, then if we do annual compared to the number of facilities they had at the time, we might be able to compare. Just be aware it's not a static population the way it is in North Carolina.
+:::
+
+3.  How often do they get surveyed outside of the annual ones? Are there more/ less complaint surveys? What happens with complaints -- how often do they find anything wrong?
+
+We can start some of this analysis just with RHA, then see what we want to compare to. That might be the easiest thing to do.
+
+## Some standards
+
+The CMS Appendix J is the surveyor instructions. There are distinctions between types of surveys, and I'm not sure it's shown anywhere in the survey history which one it is. They talk about a "full" , "focus" and "extended".
+
+FY 2023 - NC spent \$967 million on ICF's. <https://ndlegis.gov/sites/default/files/committees/68-2023/25.5062.02000presentation1040.pdf>
+
+### RISP trends of long-term supports for IDD services
+
+[In-home and Residential Long-term Supports and Services for Persons with Intellectual or Developmental Disabilities Status and Trends](https://ici-s.umn.edu/files/aaQxdJjAit/risp_2021_final_acc?preferredLocale=en-US)
+
+Compare to national figures they have for 2021:
+
+4% state-run (232), with 102 of more than 15 people 96% privately owned 5% (293) serving 16 or more people. - higher proportion of residents: 75% (46,433 people) lived in a non-state ICF/IID including 28% (12,979) in a setting of 16 or more people. (that 28 is out of the 75)
+
+(I'm not sure if this is just federal medicaid, or if it's all funding. We'll have to ask. ) Total FY 2021 ICF/IID expenditures were \$8.68 billion (\$26.22 per United States resident). Average annual ICF/IID expenditures were \$146,050 per year-end recipient. The average was estimated to be: • \$128,797 for recipients 21 years or younger in 27 reporting states and • \$144,609 for recipients 22 years or older in 34 reporting states.
+
+### OTher states
+
+#### [Louisiana](https://ldh.la.gov/assets/medicaid/StatePlan/Sec4/Attachment_4.19-D.2_Payments_for_ICFs.pdf)
+
+Louisiana uses a peer grouping of 1-8, 9-15, 16-32 and 33+ beds. It has an acuity factor that is not well defined in the guidance. ICAP service level goes from 1 to 9 and a similar score both for individuals.
+
+::: blockquote
+For dates of service on or after October 1, 2005, a resident’s per diem will be the sum of:
+
+a.  direct care per diem rate;
+
+b.  care related per diem rate;
+
+c.  administrative and operating per diem rate;
+
+d.  capital rate;
+
+e.  provider fee; and
+
+f.  dental pass-through/add-on per diem rate
+
+ICAP Support Level Acuity Factor (Multiplier):
+
+Pervasive 1.35 Extensive 1.17 Limited 1.00 Intermittent .90
+:::
+
+## CMS regulations
+
+Appendix J - goes through types of surveys : [https://www.cms.gov/medicare/provider-enrollment-and-certification/surveycertificationgeninfo/downloads/qso18-16-icfiid.pdf ](https://www.cms.gov/medicare/provider-enrollment-and-certification/surveycertificationgeninfo/downloads/qso18-16-icfiid.pdf )(page 10 begins the list of the conditions of participation chart that contains key standards and the individual standards below it. The key standards seem to go along with the part of the law, with the individual ones the regulation of how they determine the key ones. I think. )
+
+-   Full survey: initial certification "and do not require a focused fundamental survey"
+-   Focused fundamental survey: recertification unless state agency decides that it shoud be a full survey. A recertification survey can be expanded at any time to an extended survey or a full survey.
+-   Extended survey: If they are doing a focused fundamental survey and a key standard is out of compliance, they seem to check to see if a condition of participation would have a non-compliance finding. At that point they can decide to review all standards within the condition (not just the key standard)
+
+::: blockquote
+However, if the review of the key standard and corresponding standards results in a CoP noncompliance finding at 42 CFR 483.420, 42 CFR 483.450 or 42 CFR 483.460, then the team must convert the extended survey to a full survey and follow the procedures for a full survey as indicated below.
+:::
+
+Focused fundamental survey identifies key standards within conditions of participation, from which all other standards derive. When it's in substantial compliance with the key standard, they don't have to check for the detailed ones, which are automatically determined as being met. If there is a key standard out of compliance, they have to check all of the sub-standards withn it. The state agency then determines if they should keep going with this survey and document the additional standards, or convert it to an extended survey.
+
+<https://www.cms.gov/Regulations-and-Guidance/Guidance/Transmittals/Downloads/R94SOMA.pdf>
+
+Full survey : Review of ALL standards within the 8 conditions of participation. Automatically done when an immediate jeopardy is called or 42 CFR 483.420 (Client Protections), 42 CFR 483.450 (Client behavior and facility practices) or CFR 483.460 (Health care services) are out of compliance.
+
+### Immediate Jeopardy
+
+The immediate jeopardy instructions are for all entities not just ICF's. The most recent guidelines are from 2024, <https://www.cms.gov/files/document/qso-25-09-all-revised-2024-11-21.pdf>, but the changes in that submission appear to be only in regard to laboratories. It was revised in 2019 to "reinsert language referring criminal acts to law enforcement"
+
+From VHCAVCAL: ( Virginia Health Care Association and the Virginia Center for Assisted Living (VHCA-VCAL))
+
+Referring to the change, these are in context of nursing homes and assisted living facilities, but the changes also apply to ICFS
+
+"When the identified noncompliance is determined to have been caused by, or has led to a criminal act, reporting must be made to local law enforcement. If the entity refuses to report, or the surveyor cannot verify that a report was made to local law enforcement, the surveyor must consult with his/her supervisor immediately, and the State Agency must report the potential criminal incident to law enforcement immediately.
+
+This change was likely in response to several recent reports from the Government Accountability Office and Office of Inspector General recommending steps CMS should take to address gaps in the agency’s oversight."

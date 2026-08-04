@@ -1,0 +1,277 @@
+---
+title: "Facility Size Categories"
+subtitle: "Interactive breakdown of facilities by resident count, state, and ownership"
+format:
+  html:
+    code-tools: true
+    echo: false
+    embed-resources: true
+    toc: true
+---
+
+
+```{r}
+#| label: setup
+#| message: false
+#| output: false
+
+pacman::p_load("here", "tidyverse", "janitor", "ggplot2", "tidyplots", "ggthemes", "hrbrthemes", "gt")
+
+i_am("analysis/facility-size-categories.qmd")
+
+
+
+facilities  <- readRDS(here("cms_3070g/cms3070g_allfields.RDS")) |> 
+    select ( ccn=provider_ccn,  state_code, facility=name_of_facility  , parent_name,type_of_ownership, nyt_owner_type, survey_date, county,   icfiid_beds, resident_estimate) |> 
+arrange ( ccn, survey_date) |> 
+group_by ( ccn ) |> 
+slice_tail(n=1) |> 
+ungroup() |> 
+mutate ( State = factor (case_when ( state_code == "NC" ~ "North Carolina" , 
+                                            .default = "Rest of Country") 
+                    ), 
+         Ownership = factor ( nyt_owner_type, levels = c("Investor owned", "Non-profit", "Government" , "Other" ) ) 
+) |>
+select ( State, Ownership, Residents = resident_estimate) |> 
+filter ( Residents > 0)
+
+
+
+```
+<!-- for sarah: This defines the defaults -->
+
+```{r}
+#| label: pass-to-ojs
+
+default_cuts <- c(10L, 50L)
+
+ojs_define(
+  facility_data = facilities,
+  default_low = default_cuts[[1]],
+  default_high = default_cuts[[2]]
+)
+
+```
+
+<!-- Extent is the min and max values -->
+
+```{ojs}
+//| echo: false
+
+
+data = transpose(facility_data)
+residentsExtent = d3.extent(data, d => d.Residents)
+
+
+```
+
+
+<!-- Creates the sliders --> 
+
+
+
+```{ojs}
+//| echo: false
+viewof cut1 = Inputs.range(
+  residentsExtent,
+  {
+    value: default_low,
+    step: 1,
+    label: "Small / Medium cutoff"
+  }
+)
+```
+
+
+
+```{ojs}
+//| echo: false
+viewof cut2 = Inputs.range(
+  residentsExtent,
+  {
+    value: default_high,
+    step: 1,
+    label: "Medium / Large cutoff"
+  }
+)
+```
+
+
+
+```{ojs}
+//| echo: false
+lowCut = Math.min(cut1, cut2)
+highCut = Math.max(cut1, cut2)
+
+```
+
+
+<!-- equivalent of case when statement to assign a new column called Category 
+..d means that it is unpacking the object called d. .map loops through every value in data calling it d -->
+
+```{ojs}
+//| echo: false
+
+categoryOrder = ["Small", "Medium", "Large"]
+
+categorized = data.map(d => ({
+  ...d,
+  Category:
+    d.Residents <= lowCut ? "Small" :
+    d.Residents <= highCut ? "Medium" :
+    "Large"
+}))
+```
+
+
+
+::: {.callout-note}
+
+## You chose..
+
+```{ojs}
+//| echo: false
+
+md`**Small:** ≤ ${lowCut} residents &nbsp;·&nbsp; **Medium:** ${lowCut + 1}–${highCut} residents &nbsp;·&nbsp; **Large:** > ${highCut} residents`
+
+```
+
+:::
+
+
+```{ojs}
+//| echo: false
+
+
+byStateOwnership = {
+  const rolled = d3.rollup(
+    categorized,
+    v => v.length,
+    d => d.State,
+    d => d.Ownership,
+    d => d.Category
+  );
+  
+  return Array.from(rolled, ([State, byOwn]) =>
+    Array.from(byOwn, ([Ownership, byCat]) => {
+      const total = d3.sum(categoryOrder, cat => byCat.get(cat) ?? 0);
+      return categoryOrder.map(cat => ({
+        State,
+        Ownership,
+        Category: cat,
+        Count: byCat.get(cat) ?? 0,
+        Percentage: (byCat.get(cat) ?? 0) / total * 100
+      }));
+    }).flat()
+  ).flat();
+}
+
+
+```
+
+
+```{ojs}
+//| echo: false
+
+stateOwnershipPivot = {
+  const pivoted = d3.rollup(
+    byStateOwnership,
+    v => v[0].Count,
+    d => d.State,
+    d => d.Ownership,
+    d => d.Category
+  );
+  
+  return Array.from(pivoted, ([State, byOwn]) =>
+    Array.from(byOwn, ([Ownership, counts]) => {
+      const total = d3.sum(categoryOrder, cat => counts.get(cat) ?? 0);
+      return {
+        State,
+        Ownership,
+        ...Object.fromEntries(categoryOrder.map(cat => 
+          [cat, ((counts.get(cat) ?? 0) / total * 100).toFixed(1) + '%']
+        )),
+        Total: total
+      };
+    })
+  ).flat().sort((a, b) => a.State.localeCompare(b.State) || b.Total - a.Total);
+}
+
+```
+
+
+```{ojs}
+//| echo: false
+stateTotals = {
+  const rolled = d3.rollup(
+    categorized,
+    v => v.length,
+    d => d.State,
+    d => d.Category
+  );
+  
+  const stateOrder = ["North Carolina", "Rest of Country"];
+  
+  return stateOrder.map(state => {
+    const counts = rolled.get(state);
+    return {
+      State: state,
+      ...Object.fromEntries(categoryOrder.map(cat => [cat, counts?.get(cat) ?? 0])),
+      Total: d3.sum(categoryOrder, cat => counts?.get(cat) ?? 0)
+    };
+  });
+}
+
+```
+
+```{ojs}
+//| echo: false
+
+Inputs.table(stateTotals, {
+  columns: ["State", ...categoryOrder, "Total"],
+  header: {
+    State: "State",
+    Small: "Small",
+    Medium: "Medium",
+    Large: "Large",
+    Total: "Total"
+  }
+})
+
+
+```
+
+::: {style="margin-top:2em;"}
+
+
+```{ojs}
+//| echo: false
+
+Plot.plot({
+  marginLeft: 100,
+  marginBottom: 60,
+  x: {label: null, domain: categoryOrder},
+  y: {label: null},
+  fy: {label: null},
+  fx: {label: null},
+  color: {type: "linear", scheme: "blues", legend: true, label: "Percentage"},
+  marks: [
+    Plot.cell(byStateOwnership, {
+      x: "Category", 
+      y: "Ownership", 
+      fx: "State",
+      fill: "Percentage"
+    }),
+    Plot.text(byStateOwnership, {
+      x: "Category",
+      y: "Ownership",
+      fx: "State",
+      text: "Count",
+      fill: d => d.Percentage > d3.max(byStateOwnership, e => e.Percentage) / 2 ? "white" : "black"
+    })
+  ]
+})
+
+```
+
+:::

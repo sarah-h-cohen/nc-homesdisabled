@@ -1,0 +1,564 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--%@ include file="/WEB-INF/includes/page_label.inc" %-->
+
+
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang="en">
+  <head>
+    <style>
+      #cliaPopupOverlay {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        inset: 0;
+        background: rgba(0,0,0,0.6);
+      }
+      #cliaPopupBox {
+        background: #fff;
+        color: #000;
+        border-radius: 8px;
+        max-width: 600px;
+        margin: 10% auto;
+        padding: 20px;
+        font-size: 15px;
+        position: relative;
+      }
+      #cliaPopupBox h2 {
+        margin-top: 0;
+        color: #b00000;
+      }
+      #cliaPopupBox a {
+        color: #0645ad;
+        text-decoration: underline;
+      }
+      #cliaPopupButtons {
+        margin-top: 20px;
+        text-align: right;
+      }
+      #cliaPopupButtons button {
+        padding: 6px 14px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        background: #035096;
+        color: #fff;
+      }
+      .close-btn {
+        position: absolute;
+        top: 8px;
+        right: 12px;
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+      }
+      </style>
+      
+  <title>S&amp;C QCOR | Home</title>
+  <meta name="HTGold" content="Sasnode, Start page">
+  <meta name="Description" content="The S&C QCOR website is a reporting site">
+  <meta name="Keywords" content="qcor, cms qcor, qcor cms, s&c qcor, cms qcor website, s&c qcor home page, qcor cms gov, qcor database">
+  
+  
+
+  <script language="JavaScript" src="./includes/js_functions.js" type="text/javascript"></script>
+
+  
+  
+
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+
+
+
+<link href="./styles/hpms.css" rel="stylesheet" type="text/css">
+
+
+
+
+
+
+
+
+  <!-- Matomo Tag Manager -->
+<script>
+  var _mtm = window._mtm = window._mtm || [];
+  _mtm.push({'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start'});
+  (function() {
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.async=true; g.src='https://qnetmatomo.cms.gov/js/container_bmKTK32B.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<!-- End Matomo Tag Manager -->
+
+
+</head>
+<body>
+ 
+  
+  <div id="skip"><a href="#maincontent">Skip to main content</a></div>
+  
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="height: 100%;">
+
+    
+    
+
+
+
+
+
+<tr>
+	<td rowspan="2" align="center" valign="middle" style="height: 55px; background-color: #ffffff; text-align: center;">
+	<a href="#d" title="Skip sitewide navigation"><span style="font-size: 1px; color: #ffffff; text-decoration: none;">d</span></a>
+	<a href="../../main.jsp">
+		<img src="./images/hpms_local_qcor_logo.gif" alt="QCOR:  Quality, Certification and Oversight Reports." border="0" width="120" height="55">
+	</a>
+	</td>
+	<td valign="middle" align="right" class="navlg">
+	S&amp;C QCOR&nbsp;&nbsp;
+	</td>
+</tr>
+
+<tr>
+	<td align="right" valign="middle" class="navsm">&nbsp;
+
+	<!--<a class="navtop" href="main.jsp" onMouseOver="self.status = 'Home';return true" ONFOCUS="self.status = 'Home';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true">Home</a>-->
+	<!--&nbsp;|&nbsp;-->
+	<!--<a class="navtop" href="#" title="Opens in a new window" onMouseOver="self.status = 'MCO Contacts';return true" ONFOCUS="self.status = 'MCO Contacts';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true" onClick="createPopUp(?hnumber=null,650,480);">MCO Contacts</a>
+	&nbsp;|&nbsp;-->
+	<!--
+	<a class="navtop" href="#" title="CMP Tool" onMouseOver="self.status = 'CMP Tool';return true" ONFOCUS="self.status = 'CMP Tool';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true" onClick="createHelpPopUp('./cmp_tool/cmpCalculator.html', 450, 400);">CMP Tool</a>
+	&nbsp;|&nbsp;
+	-->
+	<!-- <a class="navtop" href="#" title="Help Page" onMouseOver="self.status = 'Help';return true" ONFOCUS="self.status = 'Help';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true" onClick="ShowOnePgHelp();">Help</a> -->
+	&nbsp;&nbsp;
+	<a class="navtop" href="QCOR_Resources" title="S&C QCOR - Resources" onMouseOver="self.status = 'Resources';return true" ONFOCUS="self.status = 'Resources';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true">Resources</a>
+	&nbsp;|&nbsp;
+	<a class="navtop" href="#" title="Frequently Asked Questions" onMouseOver="self.status = 'FAQs';return true" ONFOCUS="self.status = 'FAQs';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true" onClick="createHelpPopUp('./documents/QCOR_FAQs',1010,595);">FAQs</a>
+	&nbsp;|&nbsp;
+	<a class="navtop" href="QCOR_Site_Map" title="S&C QCOR - Site Map" onMouseOver="self.status = 'Site Map';return true" ONFOCUS="self.status = 'Site Map';return true" onMouseOut="self.status = ''; return true" ONBLUR="self.status = ''; return true">Site Map</a>
+	&nbsp;
+
+
+	</td>
+</tr>
+
+<tr>
+	<td colspan="2" style="height: 4px; background-color: #778899;">&nbsp;</td>
+</tr>
+
+    <tr>
+      <td width="30%" height="100%" align="left" valign="top" class="borderblue">
+
+        
+        	<table width="100%" cellspacing="2" cellpadding="2" border="0" style="height: 100%; background-color: #003366;">
+		<tr>
+			<td valign="top" style="width: 100%; height: 100%;">
+
+        
+        
+
+        <!-- R20 Req#=1214 Move Basic Search to more prominent position (A.N.) -->
+        <table style="width: 100%;">
+          <tr>
+            <td align="left" class="navHead">Tool</td>
+          </tr>
+          <tr>
+            <td><a href="Basic_Search" class="navsm">Basic Search</a></td>
+
+          </tr>
+
+      <tr>
+        <td>
+          <a href="advanced_find_provider.jsp?which=4&backReport=active_CLIA.jsp"
+             class="navsm"
+             onclick="return showCliaPopup(this.href);">
+             CLIA Laboratory Lookup
+          </a>
+        </td>
+                  </tr>
+        </table>
+        <br>
+
+        <table style="width: 100%;">
+          <tr>
+            <td align="left" class="navHead">Providers & Suppliers</td>
+          </tr>
+          
+          <tr>
+            <td><a href="/Multi-Provider_Reports" class="navsm">Multi-Provider Reports</a></td>          </tr>
+          <tr>
+            <td>&nbsp</td>
+          </tr>
+          <!-- START R13 Reqs#955-959 (A.N.) Per CMS, alphabetize, pluralize & remove "Providers" -->
+          <tr>
+            <td><a href="/ASCs" class="navsm" >Ambulatory Surgical Centers (ASCs)</a></td>
+          </tr>
+
+          <!-- START R16 Reqs# (A.N.) -->
+          <tr>
+            <td><a href="/CLIA_Labs" class="navsm" >CLIA Laboratories</a></td>
+          </tr>
+
+          <!-- END R16 Reqs# (A.N.) -->
+
+          <tr>
+            <td><a href="/CMHCs" class="navsm" >Community Mental Health Centers (CMHCs)</a></td>
+          </tr>
+
+          <!-- BEGIN R20 Reqs#  -->
+          <tr>
+            <td><a href="/CORFs" class="navsm" >Comprehensive Outpatient Rehab Facilities (CORFs)</a></td>
+          </tr>
+
+          <!-- END R20 Reqs#  -->
+          <tr>
+            <td><a href="/Dialysis_Facilities" class="navsm" >Dialysis Facilities (ESRDs)</a></td>
+          </tr>
+          <tr>
+            <td><a href="/FQHCs" class="navsm" >Federally Qualified Health Centers (FQHCs)</a></td>
+          </tr>
+
+          <tr>
+            <td><a href="/HHAs" class="navsm" >Home Health Agencies</a></td>
+          </tr>
+
+          <!-- START R11 Reqs#871-873 (A.N.) -->
+              
+          <tr>
+            <td><a href="/Hospices" class="navsm" >Hospices</a></td>
+          </tr>
+          
+
+           
+          <!-- END R11 Reqs#871-873 (A.N.) -->
+
+          <tr>
+            <td><a href="/Hospitals" class="navsm" >Hospitals</a></td>
+          </tr>
+          <tr>
+
+            <td><a href="/ICF-IIDs" class="navsm" >Intermediate Care Facilities for Individuals with Intellectual Disabilities (ICF/IID)</a></td>
+
+          </tr>
+          <tr>
+            <td><a href="/Nursing_Homes" class="navsm" >Nursing Homes</a></td>
+
+          </tr>
+
+          <tr>
+
+            <td><a href="/OPOs" class="navsm" >Organ Procurement Organizations (OPO)</a></td>
+
+          </tr>
+
+
+
+
+
+          <!-- START R20 Reqs# -->
+
+          <tr>
+
+            <td><a href="/OPTs" class="navsm" >Outpatient Physical Therapy/Speech Pathology (OPT)</a></td>
+
+          </tr>
+
+
+
+          <tr>
+
+            <td><a href="/X-raySuppliers" class="navsm" >Portable X-ray Suppliers</a></td>
+
+          </tr>
+
+
+
+          <!-- END R20 Reqs#  -->
+
+
+
+          <tr>
+
+            <td><a href="/PRTFs" class="navsm" >Psychiatric Residential Treatment Facilities (PRTFs)</a></td>
+
+          </tr>
+
+
+
+          <tr>
+
+            <td><a href="/RHCs" class="navsm" >Rural Health Clinics (RHCs)</a></td>
+          </tr>
+          
+        </table>
+        <br>
+        
+
+        
+        
+        			</td>
+		</tr>
+		<tr>
+			<td align="center" valign="bottom">			
+				<a href="#d" class="navtop">Top of Page</a><br><br>
+				<!--a href="javascript:history.back(-1);" class="navtop">Back</a-->
+			</td>
+		</tr>
+	</table>
+      </td>
+      <TD VALIGN="top" CLASS="margins">
+        <A NAME="d"></A>
+
+        
+
+        <!--h2>Select a Provider Type</h2-->
+
+
+        <!--ul>
+          <li>SNF/NF (dually certified), SNF/NF (distinct part), Skilled Nursing Facilities, and/or Nursing Facilities - </li>
+          <li>Home Health Agencies - </li>
+          <li>ICF/IID Providers - </li>
+          <li>Hospitals - </li>
+        </ul-->
+    <main id="maincontent" role="main" tabindex="-1"></main>
+    <h2>
+      Welcome to S&amp;C's Quality, Certification and Oversight Reports (QCOR)
+      <br>
+      
+    </h2>
+    <hr>
+
+    <h3><b>What's New on QCOR?</b></h3>
+    <div style="background-color: #FFFFCC;">
+  <span style="color: #993300; font-weight: bold;"></span>
+
+  <b>New Features</b><br><br>
+  <strong style="color: #003366">06/05/2026</strong> - All hospice reports have been updated with iQIES data and now reflect the latest available information. 
+  <br><br>
+  <b>2567 Statement of Deficiency Text Reporting</b> - Statement of Deficiency Text reports are now available for certain provider types. Use the available filters to generate a table of citations with associated providers and surveys. In the "Statement of Deficiencies Report" column, you can view deficiency texts in either PDF or web page format.
+  <br><br>
+  <div style="margin-left: 30px;">
+      <strong style="color: #003366">05/04/26</strong> - <a href="/RHC_2567_Reports">Rural Health Clinic (RHC)</a> 2567s are  now available. All RHC report data is also downloadable as an extract.
+      <br><br>
+      <strong style="color: #003366">04/06/26</strong> - <a href="/CAH_2567_Reports">Critical Access Hospital (CAH)</a> and <a href="/Transplant_2567_Reports">Transplant Hospital</a> 2567s are  now available. All CAH and Transplant data are also downloadable as extracts.
+      <br><br>
+      <strong style="color: #003366">03/18/26</strong> - <a href="/Hospital_2567_Reports">Hospital</a> 2567s are now available. All Hospital report data is also downloadable as an extract.
+      <br><br>
+      <strong style="color: #003366">02/23/26</strong> - <a href="/ESRD_2567_Reports">Dialysis Facility (ESRD)</a> 2567s are now available. All ESRD data is also downloadable as an extract.
+      <br><br>
+      <strong style="color: #003366">01/15/26</strong> - <a href="/CLIA_2567_Reports">CLIA</a> 2567s are now available. All CLIA report data is also downloadable as an extract.
+      <br><br>
+      <div style="margin-left: 69px;"><a href="/Hospice_2567_Reports">Hospice</a> 2567s are now available. The <a href="/hosp_surveys/Hospice_Survey_Reports">Hospice Survey Reports</a> page contains a downloadable extract of the hospice 2567 data. </div>
+      <br>
+      <strong style="color: #003366">06/27/25</strong> - <a href="/OPO_2567_Reports">Organ Procurement Organization</a> 2567s are now available. All OPO report data is also downloadable as an extract.
+      <br><br>
+      <strong style="color: #003366">01/15/25</strong> - <a href="/EMTALA_2567_Reports">Emergency Medical Treatment & Labor Act (EMTALA)</a> 2567s are now available. All EMTALA report data is also downloadable as an extract.
+      <br><br>
+  </div>
+  <strong style="color: #003366">01/21/2026</strong> - Several nursing home reports now utilize iQIES as their primary data source. iQIES, a cloud-based platform, is designed to replace the QIES system. The specific nursing home reports are listed below.
+  <br><br>
+  <strong style="color: #003366">04/28/2025</strong> - The Resources page has been improved with a redesign. As part of the changes, the <strong>Approved Transplant Program List</strong> has been moved to the Hospitals section under Provider Reports in the side navigation bar.
+  <br><br>
+  <strong style="color: #003366">03/28/2025</strong> - CMS no longer requires a warning banner when entering the QCOR website. QCOR URLs can now be directly linked to.
+  <br><br>
+  
+  <br>
+  
+  <br>
+  <span style="color: red; font-weight: bold;">Important System Migration Notice</span>
+  <br>
+  QCOR uses survey and certification data from two databases: QIES and iQIES. Several provider types have recently migrated to the cloud-based iQIES platform. As a result, provider, survey, and deficiency reports for some provider types do not contain up-to-date information. CMS is currently working to update QCOR using iQIES as the primary data source.
+ <br><br>
+
+   <table border="1"  cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 80%; margin-left: 5% ; border-color: black;">
+
+    <tr style="background-color: #f0f0f0;">
+      <th>Provider Type</th>
+      <th>Migration Status</th>
+      <th>Primary Data Source</th>
+      <th>Data Availability</th>
+      <th>Notes</th>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>Nursing Homes</td>
+      <td>Partially Migrated</td>
+      <td>iQIES* / QIES</td>
+      <td>Latest available</td>
+      <td>    
+        <b>*These are the iQIES-migrated reports:</b>
+        <ul>
+            <li><a href="/Active_NHs">Active Provider and Supplier Counts</a></li>
+            <li><a href="/New_NHs">New Provider and Supplier Counts</a></li>
+            <li><a href="/Terminated_NHs">Terminated Provider Counts</a></li>
+            <li><a href="/Survey_Activity_NHs">Survey Activity Report</a></li>
+            <li><a href="/Deficiency_Count_NHs">Deficiency Count Report</a></li>
+            <li><a href="/Citation_Freq_NHs">Citation Frequency Report</a></li>
+        </ul>
+        All other nursing home reports use QIES data complete through July 10, 2025.
+      </td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>Hospices</td>
+      <td>Migrated</td>
+      <td>iQIES</td>
+      <td>Latest available</td>
+      <td>All hospice reports are updated with iQIES data</td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>ICF-IIDs</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through March 19, 2026</td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>CORFs</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through March 12, 2026</td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>OPTs</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through March 12, 2026</td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>Dialysis Facilities (ESRDs) </td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through February 23, 2026</td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>X-Ray Suppliers</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through February 23, 2026</td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>OPOs</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through December 4, 2025 </td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>ASCs</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through May 9, 2022</td>
+      <td></td>
+    </tr>
+
+    <tr style="background-color: #ffffff;">
+      <td>HHAs</td>
+      <td>Pending Migration</td>
+      <td>QIES (CASPER) legacy data</td>
+      <td>Complete only through May 19, 2021</td>
+      <td></td>
+    </tr>
+
+  </table>
+<br>
+Note: Information about specific survey evaluations and enforcement related to these provider types remain available by request, under the Freedom of Information Act. For more information on these providers, with the exception of Nursing Homes, data can be found in the Provider of Service File (POS) - Internet Quality Improvement and Evaluation System (iQIES) on data.cms.gov.
+  <br><br>
+  
+  <span style="color: #993300; font-weight: bold;">Attention QCOR users</span>
+  <br>
+  If you require assistance using the QCOR application, please contact the QCOR Help Desk. For email requests, please use <a href="mailto:qcorhelp@exploredigits.com">qcorhelp@exploredigits.com</a>.
+  <br>
+  <br>
+  
+  <div style="background-color: #FFFFFF;">
+  <hr>
+    <a href="JavaScript:createPopUp('QCOR_Accessibility');" title="QCOR Website Accessibility">Accessibility Information</a>, 
+    <a href="JavaScript:createPopUp('https://www.cms.gov/About-CMS/Agency-Information/Aboutwebsite/Privacy-Policy');" title="CMS Privacy Policy" style="margin-left: 1%;">CMS Privacy Policy</a>,
+    <a href="JavaScript:createPopUp('https://www.cms.gov/vulnerability-disclosure-policy');" title="Vulnerability Disclosure Policy" style="margin-left: 1%;">Vulnerability Disclosure Policy</a>
+  </div>
+    <!--
+
+    
+    
+<form name="getHelp" id="getHelp" method="post">
+<input type="hidden" name="mystring" id="mystring" value="">
+<input type="hidden" name="mystring1" id="mystring1" value="">
+<input type="hidden" name="mystring2" id="mystring2" value="">
+<input type="hidden" name="myimage" id="myimage" value="welcome">
+<input type="hidden" name="myreport" id="myreport" value="">
+</form>
+
+
+    
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-->
+
+  </td>
+</tr>
+</table>
+
+</body>
+</html>

@@ -1,0 +1,88 @@
+---
+execute:
+  engine: knitr
+format: html
+---
+
+
+This program takes the clean data from Malena's spreadsheet and gets ths list of RHA facilities. We don't have when they were obtained. 
+
+```{r}
+pacman::p_load ("tidyverse", "googlesheets4", "janitor", "lubridate", "here", "glue")
+```
+
+```{r}
+# Load the data from a Google Sheet
+nc_private_equity_list <- read_sheet("https://docs.google.com/spreadsheets/d/14yCjtoATpmPczuKX-n1pfrxdNoz3m0AHUsw4mTs9vCQ", sheet="Clean Data") |> 
+  clean_names() |> 
+  mutate ( new_owner = 
+              case_when (str_starts( private_equity_company, "Blue Wolf") | str_starts(run_by, "RHA") ~ "RHA",
+                         private_equity_company == "KKR" | str_starts (run_by, "VOCA|Educare") ~ "KKR", 
+                        .default=NA_character_)
+  ) |> 
+  select (ccn =  cms_certification_number, facility_name = name, run_by, private_equity_company, owner=new_owner)
+
+nc_owners <- nc_private_equity_list |> filter ( !is.na(owner)) |> pull(  var=owner, name=ccn) 
+
+
+```
+
+Now get the national ones, and a) set the owner from Buzzfeed's story to KKR, and b) get any other RHA facilities. THe ownership in the cms_3070g data is probably more complete. There, we can pick out any one that starts with those values, in any year. 
+
+Buzzfeed:
+
+```{r}
+buzzfeed_path <- "https://raw.githubusercontent.com/BuzzFeedNews/2022-04-icf-analysis/refs/heads/main/data/ownership/final/"
+
+bf_names <- c("name", "provider_id", "type", "region", "state", 
+      "address1", "phone", "address2", "particip_date", "certified_beds", 
+      "hospital_based", "ownership_type", "termination_code", "termination_date", "legal_owner", "is_brightspring"
+)
+
+buzzfeed_owners <- map ( c("ca", "in", "la", "nc", "oh", "tx", "wv") , 
+          \(x) 
+                read_csv(glue("{buzzfeed_path}{x}.csv"), col_names = bf_names, skip=1, show_col_types = FALSE ) 
+          ) |> 
+  list_rbind() |> 
+  filter ( is_brightspring == TRUE) |> 
+  select ( ccn = provider_id, state, legal_owner, facility_name = name)  
+
+
+kkr_bf <- buzzfeed_owners |> pull (ccn)
+
+```
+
+Get the owners from CMS data 
+
+
+```{r}
+
+cms_owners <- readRDS("../cms_3070g/cms3070g_allfields.RDS") |> 
+  select ( ccn=provider_ccn, name_of_facility, state_code, parent_name, survey_date, icfiid_beds, resident_estimate, type_of_ownership, nyt_owner_type) |> 
+  mutate ( owner = case_when ( ccn %in% kkr_bf ~ "KKR", 
+                               ccn %in% names(nc_owners) ~ nc_owners[ccn])
+                        )  
+  
+
+set_owners <-
+  cms_owners |> 
+  mutate (owner_chk = case_when ( !is.na(owner) ~ owner, 
+                                  str_starts(parent_name, "RHA|CLEAR SKY|FOX REHAB|ELARA|GREAT LAKES CARING") ~ "RHA", 
+                                  str_starts ( parent_name , "EDUCARE|BRIGHT.?SPRING|RCCA|RESCARE") ~ "KKR", 
+                                  .default = NA_character_) 
+  )|> 
+  group_by (ccn) |> 
+  arrange ( survey_date, by_group=TRUE) |> 
+  fill (owner_chk, .direction="updown") |> 
+  slice_tail ( n=1) |> 
+  ungroup()
+
+
+
+
+
+
+
+```
+
+While I'm at it, I want to check to see the ownership type and the 

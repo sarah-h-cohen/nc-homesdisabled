@@ -1,0 +1,977 @@
+---
+title: Import death certificates from nc 
+author: Sarah Cohen
+format:
+  html:
+    code-fold: show
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+engine: knitr
+---
+Read the 2020-2026 NC death certifications
+
+::: callout-note  
+
+This assumes you have the original data saved in a subfolder called `data/all_death_files/yr2020-forward/`
+
+::: 
+
+Generally, the steps are this:
+
+1. Create the fixed-width format 
+2. Create the lookup tables for coded values. In this case, we need a list of named vectors, with the name as the original value and the value as the translation. They should be in the order we want the resulting factors to be in. 
+3. Read all of the raw text files into a single large data frame. 
+4. Apply the translations and replace the original values with the translations. 
+
+The only gotcha is that the names of the vectors with translations should be the same as the name of the variable , but with "_codes" appended to the name. 
+
+## Fixed-width specfications
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(readr)
+library(janitor)
+library(lubridate)
+library(duckdb)
+library(here)
+
+
+rm(list = ls())
+
+# change this path if your data is organized differently
+
+here::i_am("death-certificates/import-2020-forward-deaths.qmd")
+
+```
+
+The fixed-width specs have the start positions, end positions, and names of the columns in the original text files. 
+
+```{r}
+#| label: fixed-width-specs
+#| code-fold: hide
+
+
+nc_death_cols_2020 <- fwf_positions(
+  start = c(
+    1,
+    5,
+    7,
+    13,
+    14,
+    26,
+    27,
+    77,
+    78,
+    128,
+    138,
+    139,
+    189,
+    190,
+    191,
+    200,
+    201,
+    204,
+    205,
+    209,
+    211,
+    213,
+    215,
+    217,
+    222,
+    225,
+    227,
+    229,
+    230,
+    231,
+    232,
+    233,
+    236,
+    237,
+    239,
+    241,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    251,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    286,
+    316,
+    346,
+    376,
+    406,
+    436,
+    466,
+    496,
+    526,
+    529,
+    532,
+    535,
+    538,
+    541,
+    544,
+    547,
+    550,
+    553,
+    556,
+    559,
+    562,
+    565,
+    568,
+    571,
+    574,
+    575,
+    618,
+    701,
+    704,
+    705,
+    710,
+    876,
+    976,
+    977,
+    978,
+    979,
+    981,
+    983,
+    985,
+    989,
+    993,
+    994,
+    1075,
+    1081,
+    1082,
+    1112,
+    1162,
+    1172,
+    1182,
+    1232,
+    1242,
+    1252,
+    1280,
+    1308,
+    1317,
+    1345,
+    1485,
+    1495,
+    1505,
+    1533,
+    1543,
+    1553,
+    1560,
+    1588,
+    1597,
+    1625,
+    1653,
+    1736,
+    1739,
+    1808,
+    1858,
+    1908,
+    1958,
+    2008,
+    2058,
+    2108,
+    2109,
+    2159,
+    2409,
+    2439,
+    2467,
+    2470,
+    2498,
+    2503,
+    3342,
+    4298,
+    4326,
+    4328
+  ),
+  end = c(
+    4,
+    6,
+    12,
+    13,
+    25,
+    26,
+    76,
+    77,
+    127,
+    137,
+    138,
+    188,
+    189,
+    190,
+    199,
+    200,
+    203,
+    204,
+    208,
+    210,
+    212,
+    214,
+    216,
+    221,
+    224,
+    226,
+    228,
+    229,
+    230,
+    231,
+    232,
+    235,
+    236,
+    238,
+    240,
+    244,
+    245,
+    246,
+    247,
+    248,
+    249,
+    250,
+    270,
+    271,
+    272,
+    273,
+    274,
+    275,
+    276,
+    277,
+    278,
+    279,
+    280,
+    281,
+    282,
+    283,
+    284,
+    285,
+    315,
+    345,
+    375,
+    405,
+    435,
+    465,
+    495,
+    525,
+    528,
+    531,
+    534,
+    537,
+    540,
+    543,
+    546,
+    549,
+    552,
+    555,
+    558,
+    561,
+    564,
+    567,
+    570,
+    573,
+    574,
+    614,
+    657,
+    701,
+    704,
+    709,
+    714,
+    975,
+    976,
+    977,
+    978,
+    979,
+    982,
+    984,
+    988,
+    992,
+    993,
+    1023,
+    1075,
+    1081,
+    1111,
+    1161,
+    1171,
+    1181,
+    1231,
+    1241,
+    1251,
+    1279,
+    1307,
+    1316,
+    1344,
+    1349,
+    1494,
+    1504,
+    1532,
+    1542,
+    1552,
+    1559,
+    1587,
+    1596,
+    1624,
+    1652,
+    1680,
+    1738,
+    1740,
+    1857,
+    1907,
+    1957,
+    2007,
+    2057,
+    2107,
+    2108,
+    2158,
+    2408,
+    2438,
+    2466,
+    2469,
+    2497,
+    2502,
+    2504,
+    3391,
+    4325,
+    4327,
+    4355
+  ),
+  col_names = c(
+    "DOD_YR",
+    "DSTATE",
+    "FILENO",
+    "VOID",
+    "AUXNO",
+    "MFILED",
+    "GNAME",
+    "MNAME",
+    "LNAME",
+    "SUFF",
+    "ALIAS",
+    "FLNAME",
+    "SEX",
+    "SEX_BYPASS",
+    "SSN",
+    "AGETYPE",
+    "AGE",
+    "AGE_BYPASS",
+    "DOB_YR",
+    "DOB_MO",
+    "DOB_DY",
+    "BPLACE_CNT",
+    "BPLACE_ST",
+    "CITYC",
+    "COUNTYC",
+    "STATEC",
+    "COUNTRYC",
+    "LIMITS",
+    "MARITAL",
+    "MARITAL_BYPASS",
+    "DPLACE",
+    "COD",
+    "DISP",
+    "DOD_MO",
+    "DOD_DY",
+    "TOD",
+    "DEDUC",
+    "DEDUC_BYPASS",
+    "DETHNIC1",
+    "DETHNIC2",
+    "DETHNIC3",
+    "DETHNIC4",
+    "DETHNIC5",
+    "RACE1",
+    "RACE2",
+    "RACE3",
+    "RACE4",
+    "RACE5",
+    "RACE6",
+    "RACE7",
+    "RACE8",
+    "RACE9",
+    "RACE10",
+    "RACE11",
+    "RACE12",
+    "RACE13",
+    "RACE14",
+    "RACE15",
+    "RACE16",
+    "RACE17",
+    "RACE18",
+    "RACE19",
+    "RACE20",
+    "RACE21",
+    "RACE22",
+    "RACE23",
+    "RACE1E",
+    "RACE2E",
+    "RACE3E",
+    "RACE4E",
+    "RACE5E",
+    "RACE6E",
+    "RACE7E",
+    "RACE8E",
+    "RACE16C",
+    "RACE17C",
+    "RACE18C",
+    "RACE19C",
+    "RACE20C",
+    "RACE21C",
+    "RACE22C",
+    "RACE23C",
+    "RACE_MVR",
+    "OCCUP",
+    "INDUST",
+    "MANNER",
+    "INJPL",
+    "MAN_UC",
+    "ACME_UC",
+    "RAC",
+    "AUTOP",
+    "AUTOPF",
+    "TOBAC",
+    "PREG",
+    "DOI_MO",
+    "DOI_DY",
+    "DOI_YR",
+    "TOI_HR",
+    "WORKINJ",
+    "CERTL",
+    "TOI_UNIT",
+    "ARMEDF",
+    "DINSTI",
+    "ADDRESS_D",
+    "STNUM_D",
+    "PREDIR_D",
+    "STNAME_D",
+    "STDESIG_D",
+    "POSTDIR_D",
+    "CITYTEXT_D",
+    "STATETEXT_D",
+    "ZIP9_D",
+    "COUNTYTEXT_D",
+    "CITYCODE_D",
+    "STNUM_R",
+    "PREDIR_R",
+    "STNAME_R",
+    "STDESIG_R",
+    "POSTDIR_R",
+    "UNITNUM_R",
+    "CITYTEXT_R",
+    "ZIP9_R",
+    "COUNTYTEXT_R",
+    "STATETEXT_R",
+    "COUNTRYTEXT_R",
+    "DETHNICE",
+    "NCHSBRIDGE",
+    "DMIDDLE",
+    "DDADF",
+    "DDADMID",
+    "DMOMF",
+    "DMOMMID",
+    "DMOMMDN",
+    "REFERRED",
+    "POILITRL",
+    "HOWINJ",
+    "TRANSPRT",
+    "COUNTYTEXT_I",
+    "COUNTYCODE_I",
+    "CITYTEXT_I",
+    "CITYCODE_I",
+    "STATECODE_I",
+    "DMAIDEN",
+    "STATEBTH",
+    "DTHCOUNTRYCD",
+    "DTHCOUNTRY"
+  )
+)
+
+```
+
+Create the map function to read in the proper files
+
+```{r}
+#| label: get-file-list
+
+
+# what are the file names? 
+import_list <- 
+  str_c ( "data/yr2020-forward/", list.files("data/yr2020-forward"))
+
+import_list
+```
+
+Import death list then combine into one sorted data frame
+
+```{r}
+#| label: import-all-deaths
+
+death_list <- map ( import_list , 
+  function(x) {
+    deaths <- read_fwf(
+        file = x,
+        col_positions = nc_death_cols_2020,
+        col_types = cols(.default = col_character()),  # read everything as character not number or date
+        na = c("", " ", "Blank"), 
+        locale= locale(encoding="WINDOWS-1252")  # to fix <92> instead of apostrophes and remove warnings
+    ) |> 
+    clean_names() |> 
+    rowid_to_column(var="orig_rowid")
+    
+    
+    return (deaths)
+  }
+
+)
+
+ncdeaths <- list_rbind ( death_list) |>  arrange (dod_yr, orig_rowid )
+```
+
+## Create lookup tables
+
+Create a list of named vectors, with the original value as the name, and the translation as value. These should each be called whatever they are called in the data frame with the term `_codes` added to it. 
+
+```{r}
+#| label: lookup-tables
+
+
+# ── Coded value lookup vectors ──────────────────────────────────────────────
+# Structure: names are the raw codes, values are the human-readable labels.
+# Usage: deaths_2020 |> mutate(SEX_lbl = sex_codes[SEX])
+
+void_codes <- c(
+  "0" = "Default; Valid Record",
+  "1" = "VOID record"
+)
+
+mfiled_codes <- c(
+  "0" = "Electronic Mode",
+  "1" = "Paper Mode",
+  "2" = "Mixed Mode"
+)
+
+alias_codes <- c(
+  "0" = "Original Record",
+  "1" = "Alias Record"
+)
+
+sex_codes <- c(
+  "M" = "Male",
+  "F" = "Female",
+  "U" = "Unknown"
+)
+
+sex_bypass_codes <- age_bypass_codes <- marital_bypass_codes <- deduc_bypass_codes <- c(
+  "0" = "Edit Passed",
+  "1" = "Edit Failed, Data Queried, and Verified",
+  "2" = "Edit Failed, Data Queried, but not Verified",
+  "3" = "Edit Failed, Review Needed",
+  "4" = "Edit Failed, Query Needed"
+)
+# bypass_codes applies to: SEX_BYPASS, AGE_BYPASS, MARITAL_BYPASS, DEDUC_BYPASS
+# (SEX_BYPASS and AGE_BYPASS only have codes 0 and 1)
+
+agetype_codes <- c(
+  "1" = "Years",
+  "2" = "Months",
+  "4" = "Days",
+  "5" = "Hours",
+  "6" = "Minutes",
+  "9" = "Unknown (Not Classifiable)"
+)
+
+limits_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "U" = "Unknown"
+)
+
+marital_codes <- c(
+  "M" = "Married",
+  "A" = "Married but Separated",
+  "W" = "Widowed",
+  "D" = "Divorced",
+  "S" = "Never Married",
+  "U" = "Not Classifiable"
+)
+
+dplace_codes <- c(
+  "1" = "Inpatient",
+  "2" = "Emergency Room/Outpatient",
+  "3" = "Dead on Arrival",
+  "4" = "Decedent's Home",
+  "5" = "Hospice Facility",
+  "6" = "Nursing Home/Long Term Care Facility",
+  "7" = "Other",
+  "9" = "Unknown"
+)
+
+disp_codes <- c(
+  "B" = "Burial",
+  "C" = "Cremation",
+  "D" = "Donation",
+  "E" = "Entombment",
+  "R" = "Removal from state",
+  "O" = "Other",
+  "U" = "Unknown"
+)
+
+deduc_codes <- c(
+  "1" = "8th grade or less",
+  "2" = "9th through 12th grade; no diploma",
+  "3" = "High School Graduate or GED Completed",
+  "4" = "Some college credit, but no degree",
+  "5" = "Associate Degree",
+  "6" = "Bachelor's Degree",
+  "7" = "Master's Degree",
+  "8" = "Doctorate Degree or Professional Degree",
+  "9" = "Unknown"
+)
+
+dethnic1_codes <- c(
+  "N" = "No, Not Mexican",
+  "H" = "Yes, Mexican",
+  "U" = "Unknown"
+)
+
+dethnic2_codes <- c(
+  "N" = "No, Not Puerto Rican",
+  "H" = "Yes, Puerto Rican",
+  "U" = "Unknown"
+)
+
+dethnic3_codes <- c(
+  "N" = "No, Not Cuban",
+  "H" = "Yes, Cuban",
+  "U" = "Unknown"
+)
+
+dethnic4_codes <- c(
+  "N" = "No, Not other Hispanic",
+  "H" = "Yes, other Hispanic",
+  "U" = "Unknown"
+)
+
+# race_yn_codes applies to: RACE1 through RACE15
+
+race_codes <- c(
+  "Y" = "Yes, box checked",
+  "N" = "No, box not checked"
+)
+list2env(
+  setNames(
+    replicate(15, race_codes, simplify = FALSE),
+    paste0("race", 1:15, "_codes")
+  ),
+  envir = .GlobalEnv
+)
+
+rm(race_codes)
+
+
+race_mvr_codes <- c(
+  "R" = "Refused",
+  "S" = "Sought, but Unknown",
+  "C" = "Not Obtainable"
+)
+
+manner_codes <- c(
+  "N" = "Natural",
+  "A" = "Accident",
+  "S" = "Suicide",
+  "H" = "Homicide",
+  "P" = "Pending",
+  "C" = "Could Not Be Determined"
+)
+
+injpl_codes <- c(
+  "0" = "Home",
+  "1" = "Residential Institution",
+  "2" = "School, Other Institutions, Admin. Area",
+  "3" = "Sports and Recreation Area",
+  "4" = "Street/Highway",
+  "5" = "Trade and Service Area",
+  "6" = "Industrial and Construction Area",
+  "7" = "Farm",
+  "8" = "Other Specified Place",
+  "9" = "Unspecified Place"
+)
+
+autop_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "U" = "Unknown"
+)
+
+autopf_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "U" = "Unknown"
+)
+
+tobac_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "P" = "Probably",
+  "U" = "Unknown",
+  "C" = "Not on Certificate"
+)
+
+preg_codes <- c(
+  "1" = "Not pregnant w/in past year",
+  "2" = "Pregnant at time of death",
+  "3" = "Not pregnant, but pregnant within 42 days of death",
+  "4" = "Not pregnant, but pregnant 43 days to 1 year before death",
+  "9" = "Unknown if pregnant within past year",
+  "7" = "Not on Certificate"
+)
+
+workinj_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "U" = "Unknown"
+)
+
+toi_unit_codes <- c(
+  "A" = "AM",
+  "P" = "PM",
+  "M" = "Military (24-hour)"
+)
+
+armedf_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "U" = "Unknown"
+)
+
+
+# this didn't work the same way
+# dethnice_codes <- c(
+#    "100" = "Non-Hispanic",
+#    "200" = "Hispanic",
+#    "996" = "Unknown",
+#    "997" = "Unknown",
+#    "998" = "Unknown",
+#    "999" = "Unknown"
+#  )
+
+nchsbridge_codes <- c(
+  "01" = "White",
+  "02" = "Black",
+  "03" = "American Indian",
+  "04" = "Asian Indian",
+  "05" = "Chinese",
+  "06" = "Filipino",
+  "07" = "Japanese",
+  "08" = "Korean",
+  "09" = "Vietnamese",
+  "10" = "Other Asian",
+  "11" = "Native Hawaiian",
+  "12" = "Guamanian",
+  "13" = "Samoan",
+  "14" = "Other Pacific Islander",
+  "15" = "Other",
+  "21" = "Bridged White",
+  "22" = "Bridged Black",
+  "23" = "Bridged American Indian/Alaska Native",
+  "24" = "Bridged Asian & Pacific Islander"
+)
+
+referred_codes <- c(
+  "Y" = "Yes",
+  "N" = "No",
+  "U" = "Unknown"
+)
+
+transprt_codes <- c(
+  "DR" = "Driver/Operator",
+  "PA" = "Passenger",
+  "PE" = "Pedestrian"
+)
+
+```
+
+Apply all of the lookup codes to create factors instead of character values -- better for making summary charts, etc.  First create a function that can be called
+
+```{r}
+#| label: code-translation-function
+
+# code =  the name of the code value
+# translation map = named vector for translation
+
+
+apply_code_translation <- function(codes, translation_map) {
+  labels <- coalesce(
+    translation_map[as.character(codes)],
+    as.character(codes)
+  )
+
+  # Convert to a factor, using the values from the map as the desired level order
+  factor(labels, levels = unname(translation_map))
+}
+
+```
+
+Apply the translations and replace the original values with these. If you want to keep the original and add these instead, uncomment the .names part and add a comma just above it. 
+
+```{r}
+#| label: apply-translations
+
+translation_maps <- mget(ls()) |> keep(~ is.character(.x) && !is.null(names(.x)))
+
+target_cols <- names(translation_maps) |>
+  str_remove("_codes$")
+
+
+labeled_data <- ncdeaths |>
+  mutate(
+    across(
+      .cols = all_of(target_cols),
+      .fns = ~ apply_code_translation(
+        codes = .x,
+        translation_map = translation_maps[[paste0(cur_column(), "_codes")]]
+      )
+#        add this if you want new columns
+#      .names = "{.col}_labeled"
+    )
+  )
+
+
+
+
+```
+
+
+## Create unique ID
+
+We need to find a unique ID for each person -- everyone has a dod and dob, so we can use that by year and county. They appear to have redacted the original certificate number -- it's always blank in the original text file. 
+
+
+
+```{r}
+#| label: create-unique-id
+#| warning: false
+
+library(glue)
+
+# There are 22 rows with invalid dobs -- they have "99" in the year,month, day or all. These will not convert to dates, but I'm not worried about it.
+
+deaths_unique <- 
+  labeled_data |>
+  filter ( str_detect ( void, "VOID", negate=TRUE)) |> 
+  mutate ( dod_full = glue("{dod_yr}{dod_mo}{dod_dy}") |> as.character(), 
+           dob_full = glue("{dob_yr}{dob_mo}{dob_dy}") |> as.character(), 
+           death_id = glue("{dod_full}_{lname}_{gname}_{dob_full}"),
+           dod = ymd(dod_full), 
+           dob = ymd(dob_full),
+          .after=orig_rowid
+)
+
+
+
+
+```
+
+There were still 17 duplicates. I think I know why -- they may be "alias" names so they're there twice. But I frankly didn't look into it too closely for that small number of rows. Instead, I'm just saving the last one found because they do appear to add information later on. This is done in data.table so it doesn't take forever. 
+
+```{r}
+
+library (data.table)
+deaths_unique_last <- 
+  data.table(deaths_unique ) |> 
+  unique( by = "death_id", fromLast = TRUE) |> 
+  as_tibble()
+  
+
+
+```
+
+
+## Save relevant info
+
+I'm moving and removing some of the columns so that: 
+
+* Things that go together are together, like the names of mothers and fathers. 
+* Removed the gazillion race and ethnicity codes, and just kept the recodes that are done for NCHS
+* Removed items that are always blank / redacted
+
+
+```{r}
+#| label: remove-races-etc
+
+deaths_save <- 
+  deaths_unique_last |> 
+  mutate ( dethnice = 
+          case_when ( 
+              dethnice == "100" ~ "Non-Hispanic",
+              (dethnice >= "200" & dethnice < "300") ~ "Hispanic" , 
+              .default = "Unknown") |> 
+           factor(levels = c("Non-Hispanic", "Hispanic", "Unknown"))
+  ) |> 
+  select ( - c(ssn, dob_full, dod_full, fileno, ends_with("bypass"), dethnic1:race23c)) 
+
+
+```
+
+
+
+```{r}
+
+deaths_save <- 
+  deaths_save |> 
+  select ( death_id, dod, dob, tod, manner, dstate, lname, mname, gname, dmaiden,
+          suff, alias, sex, agetype, age, 
+            bplace_cnt, bplace_st, 
+            stnum_r:countrytext_r, 
+            cityc, countyc, statec, limits, 
+            marital, dplace, cod, dinsti,
+            address_d:citycode_d,
+            disp, tod, deduc, 
+            occup, indust,
+            nchsbridge,  dethnice, 
+            injpl:toi_unit, howinj,
+            flname, ddadf, ddadmid, dmomf, dmommid, dmommdn, 
+            dod_yr, dod_mo, dod_dy, 
+            dob_yr:dob_dy, 
+            dthcountrycd , dthcountry )
+
+
+```
+
+# save to duckdb and to csv
+
+```{r}
+#| label: setup-duckdb
+
+con <- dbConnect(duckdb(), "data/deaths2020up.duckdb")
+dbWriteTable(con,  "deaths_from2020", deaths_save, overwrite=TRUE)
+dbDisconnect(con, shutdown=TRUE)
+
+
+# now write an Excel table
+library(writexl)
+
+writexl::write_xlsx(deaths_save, path="data/deaths2020up.xlsx")
+
+
+```
+
+
+  

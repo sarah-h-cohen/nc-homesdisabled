@@ -1,0 +1,166 @@
+---
+title: "Deaths and Allegations in North Carolina"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-fold: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+
+
+```{r}
+#| label: setup
+#| message: false
+#| warning: false
+#| output: false
+
+pacman::p_load("tidyverse", "lubridate", "janitor", "here", "glue", "ggthemes", "forcats", "gt", "reactable", "gtExtras", "gtsummary")
+invisible(here::i_am("cms_3070g/nc_cms_deaths.qmd"))
+
+```
+
+
+
+
+```{r}
+#| label: load-data
+#| message: false
+#| warning: false
+
+# for NC, fix the ownership stuff by using our spreadsheet. 
+
+nc_summary <-  readRDS(here("cms_3070g/five_year_summary.RDS")) |> 
+    filter ( state_code == "NC") |> 
+    # fix bear creek
+    mutate ( fac_group = if_else ( str_detect( facility, "BEAR CREEK"), "RHA", fac_group) 
+    )  
+
+
+
+```
+
+## Deaths and allegations per patient
+
+```{r}
+#| label: per-patient-stats
+
+nc_summary |> 
+    group_by ( fac_group) |> 
+    summarize ( death_rate = (sum(deaths) / sum(median_client_est)  ) |>  round (4) * 100, 
+                unusual = (sum (deaths_suspect) / sum(median_client_est) ) |> round(4) * 100,
+                allegations_rate = ( sum (allegations) / sum ( median_client_est)) |>  round (4) * 100, 
+                facilities = n() ,
+                pct_severe_disability = (sum(median_sev_prof_id) / sum(median_client_est)  ) |> round(4) * 100 , 
+                size = mean( median_client_est) |>  round (1)
+    )  |> 
+    arrange ( fac_group) |> 
+    gt( ) |> 
+    gt_theme_nytimes()
+ 
+
+
+```
+
+
+### Profound and severe intellectual disability profile by type of owner
+
+Let's look at North Carolina in particulr, using the matching RHA estimates vs everyone else. 
+
+I'm trying to find a good way to look at these to account for severity of disability and size, but also get a handle on deaths and allegations. Thoughts? 
+
+
+```{r}
+library(ggiraph)
+
+p <- 
+  nc_summary |> 
+  mutate ( size_group = cut ( median_client_est, breaks=c (-Inf, 6, 25, Inf) , labels = c("Small (up to 6)", "Medium", "Large (Over 25)")), 
+             id_severity_score = median_sev_prof_id / median_client_est, 
+             severity = cut ( id_severity_score, breaks = c(-Inf, .5, .75, Inf), 
+                            labels = c("Low severity", "Medium severity", "High severity")
+                        ), 
+            tooltip_label = paste0(
+                 "Facility: ", facility, # Assumes a 'facility_name' column, 
+                 "\nOwner: ", coalesce( organization_name, "") , 
+                 "\nMedian Estimate: ", round(median_client_est, 1),
+                "\nDeaths: ", deaths)
+            ) |> 
+    ggplot ( aes ( x= median_client_est,
+                   y = deaths, 
+                   color = fac_group, 
+                   size=deaths, 
+                   tooltip = tooltip_label,
+                   data_id = provider_ccn # Use a unique ID for each point) 
+                   ) ) + 
+    geom_jitter_interactive ( alpha=.8 , hover_nearest=FALSE) + 
+    facet_wrap (    ~ severity,  nrow = 3, scales="free") +
+    theme_minimal( ) +
+    labs ( x = "# residents", y = "5-year deaths", color="Facility type") +
+    guides ( size="none") +
+    theme(
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank(),
+            
+            panel.border = element_rect(color = "grey90", fill = NA, linewidth = 0.5),
+
+            panel.spacing = unit(0, "lines")
+  )
+
+
+
+
+girafe(p)
+
+
+```
+
+### List of facilities' unusual deaths
+
+We can check these against what we see in the death certificates. I want to make some sparklines for each facility showing what happens over time. 
+
+
+
+```{r}
+#| label: unusual-death-list
+
+
+
+nc_all_data <- 
+    readRDS(here('cms_3070g/orig_cms_alldata.rds')) |> 
+    filter ( state_code == "NC") |> 
+    
+
+
+
+```
+
+If we want to  match against the provider list, which seems to be more accurate: 
+
+
+```{r}
+
+
+providers <- read_csv(here("qcor/actprov_listing1781213863420.csv"), skip=6, col_names=TRUE, 
+                      col_types = c(.default = "character", 
+                                    `Number of Certified Beds` = "integer") 
+) |> 
+clean_names() |> 
+mutate ( across ( c(original_participation_date, termination_date) , \(x) mdy(x) ) )
+
+```
