@@ -1,0 +1,95 @@
+---
+title: "Read and save both sets of ICD10 and COD code lists"
+format: html
+---
+
+Get the various causes of death files that we need to match against the causes in the database. 
+
+The death data sometimes uses two-digit and sometimes 4-digit values. We'll need to work on the nesting. 
+
+
+
+
+## List from NCHS 
+
+This is the official cause of death data from CDC via the NCHS: <https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Publications/ICD10/>
+
+(Downloaded the xlsx files. )
+
+I'm just using the 2023 version. 
+
+
+```{r}
+#| include: false
+
+suppressMessages(library(tidyverse))
+library(readxl)
+library(here)
+i_am("cause-of-death-files.qmd")
+
+
+
+
+```
+
+```{r}
+
+cdc_death_codes <- 
+  read_excel("cod-codes/allvalid2023-detailed-titles-headings.xlsx", skip=5) |> 
+  janitor::clean_names() |> 
+  mutate (clean_code = str_remove_all (code, "\\.")) |> 
+  select ( code=clean_code, nchs_desc = icd_title, orig_code = code)
+
+
+
+
+```
+
+```{r}
+#| eval: false
+
+
+saveRDS(cdc_death_codes, "ncha_cod_codes.RdS")
+
+
+```
+
+
+## List from CMS
+
+Downloaded the 2025 files from https://www.cms.gov/medicare/coding-billing/icd-10-codes
+
+The one that has the "order files" for diagnosis codes is the one that's used here -- it is the one that has the header rows that group things in the order thay show up in the instructions. It's useful because even though they don't always have a match code they may have a match group that will be good enough for us. 
+
+
+```{r}
+
+
+icd10_codes <- 
+read_fwf ( here( "cod-codes/icd10OrderFiles2025_0/icd10cm_order_2025.txt"), 
+   fwf_cols(row_order = c(1,5), 
+        code = c(7,13), 
+        header = c(15, 15) , 
+        short_desc = c( 17, 76), 
+        long_desc = c(78, NA) 
+   ), 
+   col_types = cols("i", "c", "i", "c", "c" )
+ )  |> 
+ mutate ( headline = if_else ( header == 0, short_desc, NA_character_) ,
+          master_code = if_else ( header==0, code, NA_character_ ) 
+ ) |> 
+ fill ( c( headline, master_code), .direction="down") |> 
+ select ( row_order, code, icd_desc = short_desc, master_code, master_desc = headline) 
+
+
+
+
+```
+
+```{r}
+#| eval: false
+
+saveRDS(icd10_codes , "cms_icd10.RDS")
+
+
+```

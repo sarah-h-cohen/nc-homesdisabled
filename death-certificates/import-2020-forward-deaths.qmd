@@ -53,7 +53,7 @@ The fixed-width specs have the start positions, end positions, and names of the 
 
 ```{r}
 #| label: fixed-width-specs
-#| code-fold: hide
+#| code-fold: true
 
 
 nc_death_cols_2020 <- fwf_positions(

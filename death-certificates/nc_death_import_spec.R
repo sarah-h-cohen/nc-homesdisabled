@@ -73,12 +73,6 @@ death_list <- map ( list("YR2014", "YR2015", "YR2017", "YR2018", "YR2019") , fun
 deaths_2014_2019 <- list_rbind( death_list) 
 
 
-
-
-}
-
-
-
 deaths <- read_fwf(
   file = "death-certificates/data/all_death_files/FINAL DEATHS.YR2019",
   col_positions = nc_death_cols,

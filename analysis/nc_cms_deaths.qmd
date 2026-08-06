@@ -8,12 +8,12 @@ format:
      - cosmo
      - ../custom.scss
     toc: false
-    code-fold: true
+    code-tools: true
     page-layout: full
     embed-resources: true
     df-print: paged
 execute:
-  echo: true
+  echo: false
   warning: false
   message: false
   error: true
@@ -31,7 +31,7 @@ engine:
 #| output: false
 
 pacman::p_load("tidyverse", "lubridate", "janitor", "here", "glue", "ggthemes", "forcats", "gt", "reactable", "gtExtras", "gtsummary")
-invisible(here::i_am("cms_3070g/nc_cms_deaths.qmd"))
+invisible(here::i_am("analysis/nc_cms_deaths.qmd"))
 
 ```
 
@@ -45,33 +45,46 @@ invisible(here::i_am("cms_3070g/nc_cms_deaths.qmd"))
 
 # for NC, fix the ownership stuff by using our spreadsheet. 
 
-nc_summary <-  readRDS(here("cms_3070g/five_year_summary.RDS")) |> 
+nc_summary <-  readRDS(here("cms_3070g/data/five_year_summary.rds")) |> 
     filter ( state_code == "NC") |> 
     # fix bear creek
-    mutate ( fac_group = if_else ( str_detect( facility, "BEAR CREEK"), "RHA", fac_group) 
+    mutate ( fac_group = if_else ( str_detect( name_of_facility, "BEAR CREEK"), "RHA", fac_group) 
     )  
 
 
 
 ```
 
-## Deaths and allegations per patient
+## Deaths and allegations 
+
+
 
 ```{r}
 #| label: per-patient-stats
 
 nc_summary |> 
     group_by ( fac_group) |> 
-    summarize ( death_rate = (sum(deaths) / sum(median_client_est)  ) |>  round (4) * 100, 
-                unusual = (sum (deaths_suspect) / sum(median_client_est) ) |> round(4) * 100,
-                allegations_rate = ( sum (allegations) / sum ( median_client_est)) |>  round (4) * 100, 
+    summarize ( death_rate = (sum(deaths) / sum(median_client_est)  ) , 
+                unusual = (sum (deaths_suspect) / sum(median_client_est) ) ,
+                allegations_rate = ( sum (allegations) / sum ( median_client_est)) , 
                 facilities = n() ,
-                pct_severe_disability = (sum(median_sev_prof_id) / sum(median_client_est)  ) |> round(4) * 100 , 
+                pct_severe_disability = (sum(median_sev_prof_id) / sum(median_client_est)  ) , 
                 size = mean( median_client_est) |>  round (1)
     )  |> 
     arrange ( fac_group) |> 
     gt( ) |> 
-    gt_theme_nytimes()
+    gt_theme_nytimes() |> 
+    fmt_percent( c(death_rate, unusual, allegations_rate, pct_severe_disability), decimals=1) |> 
+    tab_header("North Carolina facilities key rates, most recent 5 years") |> 
+    cols_label ( death_rate = "Deaths",
+                 unusual = "Unusual deaths",
+                 allegations_rate = "Allegations of abuse / neglect",
+                 facilities = "ICFs", 
+                 size = "Median client estimate") |> 
+    fmt_number ( c( facilities, size), decimals=0) |> 
+    tab_footnote( "Percents of deaths and allegations are the total for 5-years divided by the median number of residents in the latest year")
+
+ 
  
 
 
@@ -80,9 +93,7 @@ nc_summary |>
 
 ### Profound and severe intellectual disability profile by type of owner
 
-Let's look at North Carolina in particulr, using the matching RHA estimates vs everyone else. 
 
-I'm trying to find a good way to look at these to account for severity of disability and size, but also get a handle on deaths and allegations. Thoughts? 
 
 
 ```{r}
@@ -96,8 +107,8 @@ p <-
                             labels = c("Low severity", "Medium severity", "High severity")
                         ), 
             tooltip_label = paste0(
-                 "Facility: ", facility, # Assumes a 'facility_name' column, 
-                 "\nOwner: ", coalesce( organization_name, "") , 
+                 "Facility: ", name_of_facility, # Assumes a 'facility_name' column, 
+                 "\nOwner: ", coalesce( parent_name, "") , 
                  "\nMedian Estimate: ", round(median_client_est, 1),
                 "\nDeaths: ", deaths)
             ) |> 
@@ -130,7 +141,10 @@ girafe(p)
 
 ```
 
-### List of facilities' unusual deaths
+
+(The large for-profit facility is the Caswell Center, which CMS has coded as proprietary, not state-owned)
+
+<!--### List of facilities' unusual deaths
 
 We can check these against what we see in the death certificates. I want to make some sparklines for each facility showing what happens over time. 
 
@@ -164,3 +178,5 @@ clean_names() |>
 mutate ( across ( c(original_participation_date, termination_date) , \(x) mdy(x) ) )
 
 ```
+
+-->

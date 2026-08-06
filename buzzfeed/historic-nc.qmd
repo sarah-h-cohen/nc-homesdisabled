@@ -139,7 +139,10 @@ nyt_ownership_nc <- read_sheet( ownership_sheetid, sheet="Clean Data") |>
                           provider_id %in% bf_ownership_data ~ "KKR", 
                           .default = NA_character_)
         ) |> 
-  filter ( !is.na ( private_equity_company) ) |> 
+  filter ( !is.na ( private_equity_company) ) 
+  
+nyt_ownership_list <-
+  nyt_ownership_nc |> 
   pull ( private_equity_company, name=provider_id)
 
 all_private_equity <- 
@@ -198,8 +201,14 @@ facilities_used <-
                           .default = ownership_type), 
     .after=certified_beds
   )  |> 
-  mutate ( private_equity = if_else ( provider_id %in% bf_ownership_data | provider_id %in% ))
-
+  mutate ( private_equity = 
+          case_when ( 
+                      provider_id %in% names(bf_ownership_data) ~ bf_ownership_data[provider_id], 
+                      provider_id %in% names(nyt_ownership_list) ~  nyt_ownership_list[provider_id] ,
+                      .default= NA_character_)
+  )
+    
+    
 
 
 ```

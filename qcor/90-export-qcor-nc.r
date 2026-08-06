@@ -19,3 +19,8 @@ all_summaries <- readRDS("qcor/data/qcor_survey_summaries.RDS") |>
   filter ( state == "NC")
 
 
+write_sheet(all_results, "https://docs.google.com/spreadsheets/d/1y53KQsnOhFSHf0dG6o_9eWZ3Ak7J4F2hml44fadukWA/", sheet="nc_details")
+write_sheet(all_summaries, "https://docs.google.com/spreadsheets/d/1y53KQsnOhFSHf0dG6o_9eWZ3Ak7J4F2hml44fadukWA/", sheet="nc_survey summaries")
+
+
+

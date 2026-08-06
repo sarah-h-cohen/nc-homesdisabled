@@ -7,6 +7,7 @@ format:
     embed-resources: true
     page-layout: full
 execute:
+  eval: false
   echo: fenced
   warning: false
   message: false
@@ -15,18 +16,17 @@ execute:
 
 ## Readme
 
-Here's what you'll need to use the death records in R: 
+Here's what you'll need to use the death records in R:
 
-* You will probably need to install a few packages. If you install the package `pacman`, then it will automatically check to see if you have the others you need and will install them. Alternatively, RStudio / Positron may check the file as it's opened and prompt you to install them. 
+-   You will probably need to install a few packages. If you install the package `pacman`, then it will automatically check to see if you have the others you need and will install them. Alternatively, RStudio / Positron may check the file as it's opened and prompt you to install them.
 
-* You can write this in "visual mode", which lets you format your text, or in "source mode", which lets you write markdown like this. It's pretty simple, but you may find it easier to use visual. It's a little wonky though -- it doesn't work perfectly. 
+-   You can write this in "visual mode", which lets you format your text, or in "source mode", which lets you write markdown like this. It's pretty simple, but you may find it easier to use visual. It's a little wonky though -- it doesn't work perfectly.
 
-* You might get tripped up by the location of files. If you are working in one folder, either create an RStudio project or set your default location to that folder in the Settings area. You can see what it thinks is right by using the package `here` as I've done below, but that's not important. My example doc is in a subfolder of my project called `death-certificates`
+-   You might get tripped up by the location of files. If you are working in one folder, either create an RStudio project or set your default location to that folder in the Settings area. You can see what it thinks is right by using the package `here` as I've done below, but that's not important. My example doc is in a subfolder of my project called `death-certificates`
 
 You can find a little guide to writing in source mode in that textbook that I sent you to before <https://cronkitedata.github.io/djtextbook/quickstart-quarto>
 
 ## Setup
-
 
 ```{r}
 #| label: setup
@@ -43,7 +43,7 @@ here::i_am("death-certificates/example-death-queries.qmd")
 
 ## Load database
 
-You'll load the data using a `duckdb` data format -- it's kind of becoming a newer way to share larger datasets in Python and R, but it can't be directly imported into Google Sheets or Excel. 
+You'll load the data using a `duckdb` data format -- it's kind of becoming a newer way to share larger datasets in Python and R, but it can't be directly imported into Google Sheets or Excel.
 
 ```{r}
 #| label: get-data
@@ -57,13 +57,11 @@ dbDisconnect(con, shutdown=TRUE)  #<3>
 
 ```
 
-1. This provides a connection to the database -- it doesn't do anything but provide a highway into the data. 
-2. This actually takes a table from the database and puts it into your working environment
-3. You'll get a lot of warnings if you don't properly shut down the connection. But it doesn't really matter -- it only matters if you're changing data in it.
+1.  This provides a connection to the database -- it doesn't do anything but provide a highway into the data.
+2.  This actually takes a table from the database and puts it into your working environment
+3.  You'll get a lot of warnings if you don't properly shut down the connection. But it doesn't really matter -- it only matters if you're changing data in it.
 
-
-Take a look at the data: 
-
+Take a look at the data:
 
 ```{r}
 #| label: glimpse-origdata
@@ -74,16 +72,15 @@ glimpse(deaths_master)
 
 ```
 
-I haven't changed the names of columns -- I just got rid of a bunch of the race codes, and moved things around so they are near like elements. The full record layout is here: <https://docs.google.com/spreadsheets/d/1GFIoeTWM6QCHqXazq-A7Q7A1ODQjU1GhyrW49VSTV0E/edit?usp=drive_link>  in the data folder in our shared google drive. The "Layout Tables.doc" in the same folder has the geography translations, but I'm not sure you'll need them -- I think they're already applied in this data. 
+I haven't changed the names of columns -- I just got rid of a bunch of the race codes, and moved things around so they are near like elements. The full record layout is here: <https://docs.google.com/spreadsheets/d/1GFIoeTWM6QCHqXazq-A7Q7A1ODQjU1GhyrW49VSTV0E/edit?usp=drive_link> in the data folder in our shared google drive. The "Layout Tables.doc" in the same folder has the geography translations, but I'm not sure you'll need them -- I think they're already applied in this data.
 
 You see a lot of NA's here -- it seems that they only started filling out some of the columns in mid-2020, such as the place of death. (You might have to look at the top of the output here to see something that lets you look at it in a new window so you'll see all of the column names. )
-
 
 ## Example 1: Find anyone who lived at the Bear Creek address
 
 The addresses aren't done very consistently so you may want to use regular expressions to be a little more general. If you need a refresher, [here's the chapter in the textbook](https://cronkitedata.github.io/djtextbook/advanced-regex.html).
 
-What I would tend to do is look for them a lot of different ways, saving the results in interim data frames. Then you can put them together and remove duplicates. 
+What I would tend to do is look for them a lot of different ways, saving the results in interim data frames. Then you can put them together and remove duplicates.
 
 ### Step 1: Pick out some columns
 
@@ -119,7 +116,7 @@ named_rha_bear_creek <-
 
 Bummer. Only 4 rows.
 
-Now we can start with LaGrange addresses and work our way down. 
+Now we can start with LaGrange addresses and work our way down.
 
 ```{r}
 #| label: find-lagrange
@@ -137,12 +134,10 @@ lagrange <-
 
 ```
 
-1. You may need to update your packages to use this command, which replaces a bunch of "OR" conditions as of early 2026. 
-2. This is a fancy way to check 2 columns at the same time. You don't need to use it. 
-
+1.  You may need to update your packages to use this command, which replaces a bunch of "OR" conditions as of early 2026.
+2.  This is a fancy way to check 2 columns at the same time. You don't need to use it.
 
 Now that we can see that they are pretty consistent with the address, we can filter again. I looked at the data, and this is the only thing at 5840 anything...
-
 
 ```{r}
 #| label: filter-lagrange
@@ -155,8 +150,7 @@ lagrange <-
 
 ```
 
-Now, say you want to put them together for a unique list. 
-
+Now, say you want to put them together for a unique list.
 
 ```{r}
 
@@ -168,12 +162,11 @@ export_bearcreek <-
 
 ```
 
-
 ## Export to a google sheet
 
-I'm setting this up so that when  you render the document, it won't actually overwrite the spreadsheet. (The eval: false means it won't be run.) So if you want to actually change the spreadsheet, you'd either remove that comment or you can just run one chunk at a time and do it manually. That's what I usually do. 
+I'm setting this up so that when you render the document, it won't actually overwrite the spreadsheet. (The eval: false means it won't be run.) So if you want to actually change the spreadsheet, you'd either remove that comment or you can just run one chunk at a time and do it manually. That's what I usually do.
 
-To make this work,  you'll have to give it permission to your shared drive. You often have to refresh the permission every time you open it up, so it may stop and ask you to do that in the console
+To make this work, you'll have to give it permission to your shared drive. You often have to refresh the permission every time you open it up, so it may stop and ask you to do that in the console
 
 ```{r}
 #| label: export-bearcreek
