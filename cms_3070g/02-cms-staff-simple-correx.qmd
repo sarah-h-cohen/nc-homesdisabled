@@ -1,0 +1,401 @@
+---
+title: "Staffing analysis"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-fold: true
+    page-layout: full
+    df-print: paged
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+## Staffing overview 
+
+There are a LOT of errors in the staffing data. In many cases, they change by a factor of 100 periodically for no reason . More than 10% of the records have unbelievable levels of staffing -- either way too high, or way too low. 
+
+The errors more often hit the larger facilties, particularly government ones.
+
+I've looked at trying to fix what I can and null-out the rest. For the time being, I'm only doing the most obvious fixes, then nulling out anything that is both unbelievable and out of whack with the levels that the same institution has shown. There are one or two cases in which the staffing levels are just wrong for the entire period. 
+
+The process is this: 
+
+* Check the values to see if they should reasonably be multiplied by 100. There are about 600 out of 40,000 rows that fall into this category, and there's no reason to let them contaminate everything else. "Reasonably" means two things: a) multiplying by 100 takes it very close to the median of the rest of the facility; only 100x means that we won't have to make a judgmenet on big places. 
+
+* After doing the multiplication, remove any values that are so out of whack that they can't possibly be true. See the rules below. 
+
+
+The key values:
+
+-   **Direct care staff** vs **Total staff** : The rules and the important values are direct care staff, so we'll use them when we can. I have looked, and they do not appear to be any more or less off than the total staff. 
+
+-   **Licensed beds** vs. **residents** : In the vast majority of places, this doesn't matter that much. But some of the weird answers are for places that have a lot of licensed beds, but not many residents. These tend to be the big government facilities, which we care about. For that reason, use residents as a floor for the direct care staff and beds for a ceiling.
+
+### Stanford paper criteria
+
+A [paper from a Stanford researcher](https://law.stanford.edu/wp-content/uploads/2022/12/Intermediate_Care_Facilities_for_Individuals_With_Intellectual_Disabilities-Does_Ownership_Type_Affect_Quality_of_Care.pdf) evaluates quality of care and ownership patterns. Its [appendix](https://law.stanford.edu/wp-content/uploads/2019/07/Appendix-Ownership-Type-and-Quality-of-Care-09-28-21.pdf) goes through the criteria they used to determine whether there was an error in the staffing values.
+
+This analysis always uses **direct care** staff, not total staff; it also uses a **resident estimate**, not the licensed beds. The Medicaid rules are all about direct care staff. The resident estimate is used because they said the bed count is sometimes inappropriately including other facilties that are owned by the same people. 
+
+In short the criteria for removing a row was:
+
+1.  According to the rules, there must be at least one direct care staff on premises at all times. Some group homes send their clients to daytime activities during the week, so they estimated there must be at least 2 direct care staff to cover the rest of the time. I can see reasons why there might be fewer -- say, two facilities next door to each other with the minimum number of residents, who can share 2 staff members? 
+
+2.  For an ICF made up entirely of the least severely disabled adults, the ratio is 1 FTE per 6.4 residents. That cutoff is .3125. 
+
+3.  The most stringent ratio – the most profoundly disabled or children – the legal ratio is 1.3125 per resident. They multiplied by 3 to take account of places that voluntarily overstaffed. Use beds not residents to check this ratio.
+
+4.  They dropped surveys in which the value was way off from the median for the facility (\< .5 or \>2), but was checked against a possible spike or drop in the number of residents.
+
+### Adjustments to Stanford paper
+
+-   Drop facilities that closed before 2020, and those with less than 5 years' history.
+
+-  Check to see if x100 will make it very close to the median for the rest of the years. (Only one or two places were off for all years)
+
+-  Set the too-high multiplier to 5, not 3; set the too-low for less than .75 FTE total. The .3125 still seems reasonable.
+
+-  Later on for comparisons: Remove places that were not open for at least 5 years, and drop anything where the termination date is before 2020. 
+
+
+## Outlier analysis
+
+
+```{r}
+#| label: setup
+
+# start with a clean slate. I just need this for when I am testing, since it always starts with a clean slate rendering
+rm (list=ls())
+
+pacman::p_load(
+  "tidyverse",
+  "lubridate",
+  "janitor",
+  "googledrive",
+  "readxl",
+  "here",
+  "gt",
+  "reactable"
+)
+
+
+suppressMessages(here::i_am("cms_3070g/02-cms-staff-simple-correx.qmd" ))
+source (here("cms_3070g/02-staff-helper-functions.R"))
+
+provider_dates <- readRDS(here("qcor/data/qcor_provider_master.RDS")) |> 
+  select ( facility_id = ccn, provider_name, state, certified_beds, begin_date, city, termination_date, years_included) |> 
+  mutate ( type_category =
+                case_when ( termination_date  < "2020-01-01" ~ "Closed before 2020", 
+                            years_included < 5 & begin_date >= "2020-01-01" ~ "New", 
+                            years_included < 5 ~ "Not enough surveys", 
+                            .default = "Valid facility") 
+  )
+
+
+
+
+staff_df <-  readRDS(here("cms_3070g/data/cms3070g_allfields.RDS")) |> 
+  select ( facility_id = provider_ccn, facility = name_of_facility,  state=state_code,  survey_date,
+          icfiid_beds, residents = resident_estimate,  dc_staff = direct_care_personnel, staff= total_personnel, staff_ratio)  |> 
+  left_join ( provider_dates |> 
+                       select ( c( facility_id, provider_beds = certified_beds , years_included, type_category )  ), 
+              join_by ( facility_id) )  |> 
+  # there are six that have no residents and it screws up all of the computations later on
+#  filter ( residents > 0) |> 
+  mutate ( dc_res_ratio = dc_staff / residents,
+           dc_bed_ratio = dc_staff / icfiid_beds, 
+           .before =  staff) |> 
+  # there are two california facilities that appear are  brand new, or don't have ccns. Drop them
+  filter ( !is.na(years_included)) |> 
+  # there are a few places where they reported zero dc and regular staff. Just get rid of them. 
+  filter_out ( dc_staff == 0)
+
+
+staff_df |> 
+  summarize ( surveys = n(), 
+              facilities = n_distinct (facility_id), 
+              .by = type_category)
+
+   
+```
+
+
+#### Missing provider information 
+
+There are the ones that were in the provider list as valid, but had no surveys
+
+```{r}
+#| label: check-missing-providers
+
+provider_dates |> 
+    anti_join ( staff_df, join_by ( facility_id) ) |> 
+    filter (type_category == "Valid facility")
+
+
+```
+
+
+There are 29 that should have surveys but don't. About 20 of these appear to be specific buildings within a single facility. 
+
+#### Provider vs. cms 3070 beds 
+
+I'm not sure if the certified beds in the provider list comes directly from these forms, or if it's a different source. Using a different source would be good for our purposes
+
+
+```{r}
+#| label: check-beds
+
+staff_df |> 
+    group_by ( facility_id) |> 
+    filter ( survey_date == max(survey_date)) |> 
+    ungroup() |> 
+    filter ( provider_beds != icfiid_beds)
+
+
+```
+
+We can use the icf beds from the surveys -- they aren't enough different to make a difference. 
+
+#### Certified beds to residents
+
+We want to be able to use either beds or residents as a marker, but it's unclear if we can do this. In general, residents should always be lower than beds, but that's not true in 760 surveys. Most of these are modestly different, but some differ by a lot, where it appears that the bed count is for a specific portion of the facility, and residents is for the whole thing. So we still have to use both of these measures for testing. 
+
+```{r}
+#| label: residents-to-beds
+
+staff_df |> 
+  mutate ( res_to_beds = 
+                 case_when ( residents > icfiid_beds ~ "Too many residents", 
+                             icfiid_beds > (residents * 1.25) ~ "Extra beds", 
+                             .default = "Similar") 
+        ) |> 
+  summarise  ( facilities = n_distinct( facility_id), surveys= n(), .by=res_to_beds)
+
+```
+
+I can't just use the residents as always lower than beds. In some cases, the icf beds appear to be a portion of the entire facility -- residents doesn't help. (There are 544 surveys in which the number of residents is greater than the certified beds / icf beds). The same problem holds true with total staff vs. direct care staff.
+
+
+
+```{r}
+
+staff_df |> 
+  filter ( dc_staff > staff) 
+
+```
+
+These actually look right. The few cases of wildly high values of total staff are in the total staff counts, not the direct care staff counts. 
+
+Look at super high dc ratios: 
+
+```{r}
+
+staff_df |> 
+  filter ( dc_res_ratio > 5 ) |> 
+  arrange ( desc(dc_staff))
+
+```
+
+#### Choose residents / staff
+
+
+
+```{r}
+#| label: is-res-low
+#| results: hold
+
+staff_df |> 
+  count ( residents > icfiid_beds)
+
+staff_df |> 
+  count   ( dc_staff > staff )
+
+
+
+
+
+```
+
+### Outlier identification
+
+I want to look at how often we'll be negating or fixing values, putting into place the rules we want to use. 
+
+Criteria | test name
+---------| --------
+Must have at least 2 direct care | min_dc_ct
+Must have at least a direct care ratio of .3      | min_staff_ratio
+Must have not more than direct care of 3.5 for licensed beds | max_dc_bed_ratio
+
+There are only 3 places that have more than 750 beds, which makes a  check for less than .075 ok, since our cutoff is .75. total. 
+
+Example: Staff = .0125, residents = 6 -> s/b 1.2 staff. 
+         Staff = .25 , residents = 400 -> should be staff = 250 
+
+
+This checks the median of direct care resident ratio against wildly wrong values: 0.1 as a low, and 10 as a high. 
+
+
+```{r}
+#| label: too-small-ratios
+
+cutoffs <- c( dc_staff = .1, dc_ratio_low = .2, dc_ratio_high = 8)
+ratio_min_max <- function ( dc_res_ratio, dc_bed_ratio ) {
+  
+   
+}
+
+
+
+value_tests <- 
+  staff_df |> 
+  group_by  (facility_id) |> 
+  mutate ( 
+    staff_too_low = dc_staff < cutoffs["dc_staff"] ,
+    staff_ratio_low = dc_res_ratio < cutoffs["dc_ratio_low"], 
+    staff_ratio_high = pmin( dc_res_ratio , dc_bed_ratio)  > cutoffs["dc_ratio_high"], 
+    med_res_ratio = get_dc_medians( dc_res_ratio, min_value = .1, max_value=10) , 
+    min_good_ratio = ( dc_staff * staff_ratio_low == FALSE), 
+    max_good_ratio = max( staff_ratio_high == FALSE * dc_staff) ,
+    dc_staff_x100 = dc_staff *100, 
+    fix_dc_staff = if_else ( (staff_ratio_low == TRUE & 
+                              between ( dc_staff_x100 , ( med_res_ratio * .8) , (med_res_ratio  * 2 ))
+                            ) , 
+                            TRUE , 
+                            FALSE
+                            )
+  )
+
+
+```
+
+General results: 
+
+Out of 64 possible combinations, only 17 were used. It's impossible to fail all of the too-small and all of the too-big at the same time, but there are cases where they fail ONE of the too-small AND the too-big. An example is if the dc staff is too small, but the total staff is too big.
+
+Here's the decision list: 
+
+failed_total | failed_ ratio | failed_big | decision
+--- | --- | ---
+F  | F | F | keep
+F  | F | T | remove
+F  | T | F | remove
+T  | F | F | keep
+T  | T | F | try to fix
+
+BUT : Use the dc staff as the lower of total and dc staff reported. This takes care of the few cases in which they don't makes sense, and there's a huge error on dc staff but not in the total staff. 
+
+Those are the only combinations that exist - it leaves alone 28,000; it tries to fix 650; it removes about 500. 
+
+
+```{r}
+#| label: look-at-small-ratios
+
+
+value_tests |> 
+  filter ( bitmap == "001100") |> 
+  select (facility_id, facility, state, survey_date, icfiid_beds, residents, staff_ratio, staff, dc_res_ratio, dc_bed_ratio , dc_staff)  |> 
+  group_by ( facility_id) |> 
+  slice_tail(n=1)
+
+
+```
+
+The ones that have more than 1 employee and under .3 ratios are probably off by a factor of 10 -- they are large, and 10x or 100x would get you to something reasonable, but we don't know the right answer. There are 51 facilities affected, mainly in Illinois and Texas. For now, I'm going to blank them out, but we may want to call some of them if we want to do a national analysis, esp of the government facilities. 
+
+```{r}
+#| label: look-at-all-small
+
+value_tests |> 
+  filter ( bitmap == "111100") |> 
+  select (facility_id, facility, state, survey_date, icfiid_beds, residents, staff_ratio, staff, dc_res_ratio, dc_bed_ratio , dc_staff)  |> 
+  group_by ( facility_id) |> 
+  mutate ( num_years = n() ) |> 
+  slice_tail(n=1)
+
+
+```
+
+
+There are 660 facilities that have at least one very small value. Most of these only have 1 year that's a problem. About 230 of them are small facilities with 1 or so employees. For those we keep them. The ones that we'll fix are those with a staff ratio of under 0.1 -- those are uniformly larger homes off by a factor of 100. We'll check those to make sure they're in range with the "good" medians. 
+
+#### Get medians for each facility
+
+F  | F | F | keep
+F  | F | T | remove
+F  | T | F | remove
+T  | F | F | keep
+T  | T | F | try to fix
+
+In trying to fix, I check whether multiplying by 100 gets us reasonably close to the median for the facility, which in turn is only using plausable staff levels.
+
+```{r}
+#| label: get-medians
+
+# check the fixed 
+
+check_fix <- function ( init_ratio, init_staff, median_ratio) {
+
+  tmp <- (init_ratio * 100 )
+  test_low <- median_ratio * .75
+  test_hi <- median_ratio * 3
+
+  if ( is.na( median_ratio) ) {
+    return_value <- NA_real_
+  } else if ( between (tmp, test_low, test_hi) ) {
+    return_value <- init_staff * 100
+  } else {
+    return_value <- NA_real_
+  } 
+
+  return_value
+}
+
+
+check_fix ( .02, 10, .)
+
+value_tests <- 
+  value_tests |> 
+  group_by (facility_id) |> 
+  mutate ( median_dc_staff = get_dc_medians( dc_staff , min_value = 0.8, max_value = 1500) , 
+           median_dc_ratio = get_dc_medians( dc_res_ratio, min_value= 0.2, max_value = 5 ) , 
+           replace_dc_staff = 
+              case_when ( 
+                  bitmap == "000000" ~ "keep",
+                  failed_total * failed_ratio == 1 ~  "fix",
+                  failed_ratio | failed_big ~ "remove", 
+                  failed_total ~ "keep",
+                  .default = "keep"
+              )
+  ) |> 
+  # try the fix
+  mutate ( fixed_staff = case_when ( replace_dc_staff  == "keep" ~  dc_staff,
+                                     replace_dc_staff == "remove" ~ NA_real_,
+                                     replace_dc_staff == check_fix ( ) ) )
+
+
+```
+
+
+
+```{r}
+#| label: create-tests-individual
+
+staff_df |> 
+  mutate ( under_3_staff = if_else ( ))
+
+
+
+
+```

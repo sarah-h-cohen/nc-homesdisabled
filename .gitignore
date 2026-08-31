@@ -58,6 +58,7 @@ medicaid-provider/data
 death-certificates/data/
 qcor/qcordocs
 analysis/.claude/
+ncrecords/inspection_pages
 
 # vscode settings
 **/.vscode

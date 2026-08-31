@@ -1,0 +1,164 @@
+---
+title: "Ad-hoc data points - large facilities"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../../custom.scss
+    toc: false
+    code-tools: true
+    page-layout: full
+    embed-resources: false
+    df-print: paged
+    echo: false
+
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+
+```{r}
+
+rm(list=ls())
+pacman::p_load("tidyverse", "janitor", "here", "lubridate", "gt" , "gtExtras", "hrbrthemes")
+i_am("analysis/adhoc/working-big-govt.qmd")
+
+cms3070 <- readRDS(here("cms_3070g/data/cms3070g_allfields.RDS")) |> 
+    select ( provider_ccn:state_code, nyt_owner_type, survey_date, parent_name, icfiid_beds, resident_estimate, direct_care_personnel, total_personnel, severe_intellectual_disability, profound_intellectual_disability, allegations_abuse_investigated, allegations_neglect_investigated, deaths_unusual, total_deaths, oldest_client_age, over65) |> 
+  mutate ( direct_care_ratio = direct_care_personnel / resident_estimate, 
+           pct_severe = (severe_intellectual_disability + profound_intellectual_disability) / resident_estimate, 
+           investigations = allegations_abuse_investigated + allegations_neglect_investigated, 
+           old_pct = over65 / resident_estimate) 
+
+latest_survey <- 
+    cms3070 |> 
+    slice_tail ( n=1, by=provider_ccn) |> 
+    arrange ( desc ( icfiid_beds))
+
+
+
+```
+
+
+
+
+## Which facilities? 
+
+**Kids:**
+
+Tar River (265) and Hilltop Home ( 352) are comparable, about 25-35 kids
+
+**Larger ones**
+
+Walnut Creek is 37 icif beds, 33 residents; there is only one other between 30 residents / 35 beds in the state. 
+
+
+
+```{r}
+#| results: false
+
+
+library(forcats)
+
+
+latest_survey |> 
+#    filter (oldest_client_age < 21) |> 
+    filter ( state_code == "NC")
+
+```
+
+The regulations favor small homes of 6 partly because of the staffing regulations: They need 1 person on site at all times for per six patients for the least severity. They always  need at least one person anyway, so this is the maximum benefit for the minimum staff. 
+
+Higher-severity clients do require more staffing, but we don't have what we need to know exactly what that is. 
+
+The (old) regulations have a minimum ratio of 1 hour of staff for every 6.4 hours of residents; the maximum for the most in-need clients is 1 for every 3.2 hours. (This is the way the Stanford researchers read the regs below) .  That translates to a minimum ratio for a place like Bear Creek of about 135 FTEs. 
+
+
+[Here's the CMS guidance](https://www.cms.gov/files/document/surveyor-guidelines): 
+
+"The minimum ratios in this standard indicate the minimum number of direct-care staff that
+must be present and on duty, 24 hours a day, 365 days a year, for each discrete living unit. For
+example, to calculate the minimum number of living unit staff that must be present and on duty
+in a discrete living unit serving 16 individuals with multiple disabilities: divide the number of
+individuals “16,” by the number corresponding to the regulation “3.2,” the result equals “5.”
+Therefore, the facility must determine how many staff it must hire to ensure that at least 5 staff
+will be able to be present and on duty during the 24 hour period in which those individuals are
+present.
+
+Using the living unit described above, “calculated over all shifts in a 24-hour period” means that
+there are present and on duty every day of the year: one direct care staff for each eight
+individuals on the first shift (1:8), one direct care staff for each eight individuals on the second
+shift (1:8), and one direct care staff for each 16 individuals on the third shift (1:16). Therefore,
+there are five (5) direct care staff present and on duty for each twenty-four hour day, for 16
+individuals. The same calculations are made for the other ratios, whichever applies. "
+
+**Bear Creek example** 
+
+105 patients * 168 hours / week = 17640
+
+17640 / 3.2 minimum hours = 5512.5 hours / week required
+
+5512.5 / 40 = 137.8 FTE required
+
+
+::: {html-table-processing="none"}
+
+```{r}
+
+latest_survey |> 
+    filter ( state_code == "NC", resident_estimate > 30) |> 
+    mutate (
+             owner = 
+              case_when 
+                ( provider_ccn %in% c("34G002", "34G003", "34G001") ~ "Government", 
+                 provider_ccn %in%  c("34G017", "34G006", "34G038", "34G009") ~ "RHA", 
+                 provider_ccn == "34G249" ~ "Holy Angels", 
+                 .default = NA_character_) 
+    ) |> 
+    select ( ccn = provider_ccn, name = name_of_facility, city, county,  survey_date, owner,
+            beds = icfiid_beds, 
+            residents = resident_estimate,
+            direct_care_staff = direct_care_personnel, staff = total_personnel, direct_care_ratio,   pct_severe, old_pct, investigations, deaths_unusual, total_deaths
+            ) |> 
+   gt() |> 
+   cols_hide( c( survey_date)) |> 
+   gt_theme_nytimes() |> 
+   opt_row_striping(row_striping = FALSE) |> 
+   fmt_percent ( c(pct_severe, old_pct) ,decimals=1) |> 
+   fmt_number ( direct_care_ratio, decimals=2) |> 
+   tab_style ( 
+     style = cell_fill(color = "#F9E3D6"), 
+     locations = cells_body(rows = owner == "RHA")) |> 
+    tab_style  ( 
+        style = cell_text(  color="black") ,
+        locations = cells_column_labels() 
+    ) |> 
+   cols_label ( direct_care_staff = "Direct Care", 
+                staff = "Total", 
+                direct_care_ratio = "Ratio", 
+                pct_severe = "% Severe +", 
+                deaths_unusual = "Unusual", 
+                total_deaths = "Total", 
+                old_pct = "% over 65",
+                investigations = "Abuse / Neglect Invst") |> 
+    tab_spanner ( label = "Staffing", columns = c(direct_care_staff, staff, direct_care_ratio)) |> 
+    tab_spanner ( label = "Deaths", columns = c(deaths_unusual, total_deaths))  |> 
+    cols_width ( name ~ 150) |> 
+    tab_footnote ("'Ratio' is the direct care ratio, which is what the regulations monitor. Data is based on residents, not licensed beds. All data refer to the most recent annual survey, all of which were in 2025.  Source: CMS 3070G FOIA")
+   
+   
+ 
+
+
+
+```
+
+:::

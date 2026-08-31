@@ -17,6 +17,7 @@ execute:
   warning: false
   message: false
   error: true
+  eval: false
 
 engine:
   knitr
@@ -29,9 +30,21 @@ The North Carolina public records are accessed through a unique identifier that 
 Start here: <https://info.ncdhhs.gov/dhsr/mhlcs/sods/searchpopup.asp> and just hit "Search" . There's no way to limit it to just ICF's.
 
 ```{r}
+#| eval: true
+#| include: false
+
+
 library(httr2)
 library(rvest)
 library(tidyverse)
+library(glue)
+library(janitor)
+
+```
+
+```{r}
+#| label: get-index
+#| eval: false
 
 
 response <- request("https://info.ncdhhs.gov/dhsr/mhlcs/sods/results.asp") |>
@@ -70,63 +83,358 @@ parse_county <- function ( section ) {
 all_counties <- map ( county_sections, \(c) parse_county (c)) |> list_rbind()
 
 saveRDS(all_counties, "nc_pub_records_links.RDS")
-
-
-
 ```
 
 This is a list of all of the facilities, not just ICF's . We need to match this back to the ICF list. We don't think any have closed in recent years, so we don't have to worry about missing the ICFs.
 
-Google sheet with the names and addresses:
-
-```{r}
-
-
-
-```
 
 ## Match ICFs
 
+Round 1: How well do they match by name and zip code? The matching columns are dba_name to name
+and site_zip to zip_code
+
 ```{r}
+#| label: match-exact
+#| eval: false
 
-
-icf_nc  <- readxl::read_excel("icfmr.xlsx") |> 
-    janitor::clean_names() 
-    
 
 standardize_name <- function ( orig) {
     orig |> 
         str_to_lower() |> 
-        str_replace_all ("[.,-/]", " ") |> 
+        str_replace_all ("[.,-/#&]", " ") |> 
+        str_replace_all("[']", "") |> 
         str_squish() |> 
         str_trim()
 
 }
+```
 
-standardize_name ( "Ralph Scott Lifeservices,  inc.")
+Get the license list:
 
+```{r}
 
-
-# there were some duplicates in the rows, but the only thing different are row numbers. Some are day programs, I think. 
-
-std_icfs <- 
-    icf_nc |> 
-    distinct (  dba_name, site_zip, facility_address, license_number, ccn_number)   |> 
-    mutate ( standard_name = standardize_name ( dba_name))
-
-std_records <- 
-    all_counties |> 
-    mutate ( standard_name = standardize_name ( name))
-
-
-exact_matches <- 
-    std_icfs |> 
-    inner_join ( std_records, join_by (standard_name == standard_name, site_zip == site_zip))  |> 
-    group_by ( linkid , license_number, ccn_number) |>
-    slice_tail ( n=1) |> 
-    ungroup( ) 
+icf_nc  <- readxl::read_excel("icfmr.xlsx") |> 
+    janitor::clean_names() 
 
 
 ```
 
-From here, we can create another spreadsheet with the inspection page linked from the licenses. I'll come back to that later.
+
+
+```{r}
+
+
+
+match_counties <- readRDS("nc_pub_records_links.RDS") |> 
+  rename_with ( \(x) str_c( "pr_", x)) |> 
+  rename  ( pr_zip = pr_site_zip) |> 
+  mutate ( clean_pr_name = standardize_name(pr_name))
+  
+## Add the government ones
+
+govt_icfs <- tibble (
+              ccn_number = c( "34G001", "34G002", "34G003", "34G004", "34G159") ,
+              dba_name = c("Caswell Center", "Murdoch Developmental Center", "J. Iverson Riddle", "O'Berry Neuro-Medical", "Carolina Living and Learning") ,
+              site_city = c("Kinston", "Butner", "Morganton", "Goldsboro", "Pittsboro"), 
+              site_zip = c("28501", "27509", "28655", "27530", "27312"), 
+              county = c("Lenoir", "Granville", "Burke", "Wayne", "Chatham") , 
+              pr_linkid = c("955755", "955757", "955760", "955758", "921564")
+       )  |> 
+        mutate ( licensee = "State of NC",
+                 nc_pub_recs_link =  glue("https://info.ncdhhs.gov/dhsr/mhlcs/sods/facility.asp?fid={pr_linkid}")
+      )
+
+
+link_index <- 
+  icf_nc |> 
+  select ( row_no, license_number, ccn_number, dba_name, licensee = name_of_licensee_legal_name, site_city, site_zip, county) |> 
+  mutate ( clean_dba_name = standardize_name ( dba_name)) |> 
+  left_join ( match_counties, 
+              join_by ( clean_dba_name==clean_pr_name, site_zip == pr_zip) , 
+              relationship="many-to-many"
+            ) |> 
+  mutate ( nc_pub_recs_link = glue("https://info.ncdhhs.gov/dhsr/mhlcs/sods/facility.asp?fid={pr_linkid}"))   |> 
+  add_row ( govt_icfs) |> 
+  distinct ( pr_linkid, .keep_all=TRUE)   
+
+
+
+
+
+
+
+```
+
+
+## Get the pages 
+
+First, I think they are blocking automated scripting on the page. Check it: 
+
+```{r}
+#| label: test-page-download
+#| eval: false
+
+download_webpage <- function(url, output_file = "page.html", delay = 2) {
+  
+  # Add a delay to be respectful to the server
+  Sys.sleep(delay)
+  
+  # Create request with realistic browser headers
+  response <- request(url) |>
+    req_user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36") |>
+    req_headers(
+      "Accept" = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+      "Accept-Language" = "en-US,en;q=0.5",
+      "Accept-Encoding" = "gzip, deflate, br",
+      "DNT" = "1",
+      "Connection" = "keep-alive",
+      "Upgrade-Insecure-Requests" = "1"
+    ) |>
+    req_retry(max_tries = 3) |>
+    req_throttle(rate = 1) |>
+    req_perform()
+  
+  # Extract and save the HTML content
+  html_content <- resp_body_string(response)
+  writeLines(html_content, output_file)
+  
+  # message("Page successfully saved to: ", output_file)
+  
+  return(invisible(output_file))
+}
+
+
+
+
+```
+
+
+Retreive every page and save it into the inspection_pages subfolder
+
+
+```{r}
+#| label: retrieve-pages
+#| eval: false
+
+pageids <- unique(link_index$pr_linkid)
+govt_pageids <- link_index |>  filter ( licensee == "State of NC") |> pull( pr_linkid)
+
+
+for (p in govt_pageids) {
+  tmp_in <- glue("https://info.ncdhhs.gov/dhsr/mhlcs/sods/facility.asp?fid={p}")
+  tmp_out <- glue("inspection_pages/i{p}.html")
+  download_webpage( tmp_in, output_file = tmp_out)
+  Sys.sleep( runif( 1, .25, 2))
+
+}
+
+
+
+```
+
+
+## Parse into a data table
+
+
+
+Example file: 942020
+
+
+```{r}
+#| label: get-headers-function
+
+get_header <- function(html) {
+  
+  facility_name <- html |> 
+    html_element("h3") |> 
+    html_text()
+  
+  address <- html |> 
+    html_element("td p") |> 
+    html_text() |> 
+    str_trim()
+  
+  td_p_elements <- html |> html_elements("td p")
+  
+  mailing_address <- if (length(td_p_elements) >= 2) {
+    td_p_elements |> pluck(2) |> html_text() |> str_trim()
+  } else {
+    NA_character_
+  }
+  
+  contact_info <- if (length(td_p_elements) >= 3) {
+    td_p_elements |> pluck(3) |> html_text() |> str_trim()
+  } else {
+    NA_character_
+  }
+  
+  programs <- tryCatch({
+    html |> 
+      html_element("table.program") |> 
+      html_table() |> 
+      mutate(type = str_c(`Program code`, `Services`, sep = " - ")) |> 
+      summarize(programs = str_c(`Program code`, collapse = "; ")) |> 
+      pull(programs)
+  }, error = function(e) NA_character_)
+  
+  tibble(
+    pr_facility_name = facility_name,
+    site_addr = address,
+    mailing_addr = mailing_address,
+    contact = contact_info,
+    categories = programs
+  )
+}
+
+```
+
+```{r}
+#| label: get-doc-list-function
+
+get_details <- function (html) {
+
+ documents <- html |> 
+  html_element("table.facility") |> 
+  html_table() |> 
+  rename(
+    inspection_type = `Inspection Type`,
+    document_type = `Document Type`,
+    inspection_date_txt = `Inspection Date`,
+    pages = Pages 
+  )
+
+  doc_links <- html |> 
+    html_element("table.facility") |> 
+    html_elements("a") |> 
+    html_attr("href") |> 
+    str_remove("^.*sods/")
+
+  #depends on doc_links being same length vector as the number of rows in documents
+  documents |>  mutate ( doc_link_id = doc_links)
+
+}
+
+
+```
+
+
+Test it: 
+
+```{r}
+#| label: test-getdata
+
+
+
+id <- "921564"
+html<- read_html(glue("inspection_pages/i{id}.html"))
+
+header <- get_header(html) 
+header["facility_linkid"] <- id
+```
+
+```{r}
+
+  
+docs <- get_details(html) |> 
+  mutate  ( annual = str_detect ( inspection_type, "Annual"), 
+            complaint = str_detect (inspection_type, "Complaint"),
+            followup = str_detect( inspection_type, "Follow-up")
+        )
+        
+```
+
+
+
+```{r}
+#| label: get-html-tables
+
+
+
+doc_names <- list.files( path="inspection_pages", pattern="*.html")
+all_doclist <- list()
+
+for ( i in seq_along(doc_names) ) {
+  
+  page <- doc_names[i]
+  pageid <- str_extract( page, "\\d+") 
+
+  html <- read_html( glue("inspection_pages/{page}"))
+  header_row <- get_header(html)
+  
+  doc_df <- get_details( html) |> 
+    mutate  ( annual = str_detect( inspection_type, "Annual"), 
+            complaint = str_detect(inspection_type, "Complaint"),
+            followup = str_detect( inspection_type, "Follow-up"), 
+            fac_pageid = pageid, 
+            doc_link = glue("https://info.ncdhhs.gov/dhsr/mhlcs/sods/{doc_link_id}") |>  as.character(), 
+            inspection_date = mdy(inspection_date_txt)
+         ) |> 
+    cross_join ( header_row)
+
+  all_doclist[[i]] <- doc_df 
+    
+}
+
+
+all_docs <- 
+  list_rbind(all_doclist)
+
+
+```
+
+
+Get it back together with the licensing data
+
+
+
+```{r}
+
+master_nc_pubrecs_index <- 
+  link_index |> 
+  select ( license_number, ccn_number, licensee, dba_name, site_city, site_zip, county, pr_linkid, nc_pub_recs_link) |> 
+  inner_join (all_docs, join_by ( pr_linkid == fac_pageid) ) |> 
+
+  mutate ( pr_link = glue('=HYPERLINK("{nc_pub_recs_link}", "{license_number}")' ), 
+           doc_id = str_extract ( doc_link_id, "\\d{4}/[-0-9]+"),
+           doc_link = glue('=HYPERLINK("{doc_link}", "Link to doc")')
+  ) 
+  
+  
+  
+```
+
+
+
+
+Clean the licensee data: 
+
+```{r}
+
+count ( master_nc_pubrecs_index, licensee)
+
+
+```
+
+
+
+Save it as a google sheet
+
+I already created a sheet called "[NC inspection doc index](https://docs.google.com/spreadsheets/d/1oAngSk_kVgkXdU811WVhYvCN2vJDSfSsthm42B0HtEI/edit?usp=sharing)", 
+
+
+```{r}
+
+library(googlesheets4)
+
+
+
+master_nc_pubrecs_index |> 
+  select ( pr_link, ccn_number:county, categories, inspection_type, document_type, inspection_date, pages, doc_link) |> 
+  sheet_write ( "https://docs.google.com/spreadsheets/d/1oAngSk_kVgkXdU811WVhYvCN2vJDSfSsthm42B0HtEI", sheet = "New version 3")
+
+
+
+
+
+
+```

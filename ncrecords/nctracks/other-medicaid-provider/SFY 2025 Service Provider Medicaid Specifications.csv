@@ -1,0 +1,92 @@
+Data Request #:,DRT0187760
+,
+Created By ,NC-DHHS-DMA-IT
+,
+Run Date:,9/23/2025
+,
+Time Frame:,SFY 2025( Date of Payment 01 JUL 2024 to 30JUN 2025)
+,
+Review:,"Pulled data from Data Warehouse tables -  claim,  claim line and Provider Tables, EPS Encounter tables IRL"
+,
+,
+Request Specifications:,
+Per Legislative request this report should include ,"Patient Count, Visits, Procedures performed, Amount Paid"
+,By Billing and rendering Provider 
+,By Location and county of all providers ( Billing and Rendering)
+,
+To be able to display the Information as accurate as possible the report is divided into multiple TABs as described below,
+,
+,
+Tab Name ,Tab Description
+Professional Providers ,"All the professional Providers ( CMS 1500 And Dental , MCT, LME-MCO) are Grouped by Payer with regular visits to the doctors and have procedures performed at the provider location"
+Institutional Providers - Visits,"Institutional Claims like Outpatient, Home Health ,Outpatient Crossover  are Grouped together by Payer with regular Visits, with Revenue codes instead of Procedure codes as a group of services are performed"
+Institutional Providers - Days,Institutional Claims Like (Hospice/Nursing Home/Mental Health/Inpatient -Inpatient Crossover Non Acute care) the visits are calculated in days or number of days the patient stayed at the facility grouped by Payer
+Institutional Providers - Stay,Institutional Claims like ( Acute Care  - Inpatient and Inpatient Crossover the visits calculation is actually based on number of Stays with the DRG counts by Payer
+Pharmacy Providers,The Drug claims cannot be counted as Visits and so Scrips have been included for all payers
+,
+Report Specification,
+The dataset is based on Date of Payment for SFY mentioned above,
+"Payer is DMA for Payer= Medicaid Direct, Medicaid only HEALTH PLAN 1 NC health Choice not included, Payer=Plan ID for standard plans received from MCT EPS system, Payer = LME-MCO for payments form LME-MCO.",
+"Payer id for each standard Plan, Tailored Plan and PIHP is coming from the new EPS system which the plans submit",
+Paid Claims are Included,
+"System Generated FFS/ Medicaid Direct claims  'M' ,'4', 'W','J','9' (Management Fee/Capitation/Financial/MC Direct Paymet/Maternity Payment), HASP Payments are  Not included",
+"Data contains fund codes 1310, 1311 and 1340 for all Medicaid Direct data and any claim data submitted by MCT plans",
+,
+Column Description below,
+Column Name ,Column Description 
+PAYER,"When Payer=Medicaid Direct the data source is what Medicaid paid (claims without M, 4, W,J,9 ), when Payer=Plan ID then data pertains to what each standard plan, tailored plan, PIHP has paid as part of MCT,when Payer=LME-MCO then the data source is claims that are submitted by LME-MCO to Medicaid"
+Billing NPI/Atypical,Billing Provider's National Provider Identification or Atypical NPI
+Billing Provider Name ,Billing Provider's Name
+Billing Provider DBA Name,Billing Provider Doing Business as Name
+Billing  Address *,Billing Provider's Address 
+Billing County Code *,Billing Provider's County Code 
+Billing County Name *,Billing Provider County Name 
+Billing Provider Taxonomy Code,Billing Provider Taxonomy Code
+Billing Provider Type,Billing Provider Type
+Billing Provider Classification,Billing Provider Classification 
+Billing Provider Specialization,Billing Provider Specialization
+Rendering NPI/Atypical **,Service Provider's National Provider Identification or Atypical NPI
+Rendering Provider Name ,Rendering Provider's Name
+Rendering Address,Rendering Provider's address when available 
+Rendering County Code **,Rendering Provider's County Code 
+Rendering County Name **,Rendering Provider County Name 
+Rendering Provider Taxonomy Code **,Rendering Provider Taxonomy Code 
+Rendering Provider Type,Rendering Provider Type
+Rendering Provider Classification,Rendering Provider Classification
+Rendering Provider Specialization,Rendering Provider Specialization
+Number of Recipients ,Distinct Count of Patients seen the provider  by Service date/or visiting the Pharmacy at the specified location on Specific day
+Number of Visits/Days/Stay/Scrips ***,Number of Visits  at the specified provider location  by provider type 
+Number of Procedures ****,Count of Procedures Performed by provider location  and by provider type
+Amount Paid ,Paid Amount Includes  paid
+,
+,
+Notes ,
+Billing Address *,
+The Billing address in some cases can be blank or Unknown because the claim comes in without a location or may not have a county entered,
+The Billing county code/Name may not be found for any Unknown location when a claim comes in without location Details or missing county code,
+The Billing county code/Name  for Pharmacy claims are not available in the system and so only the Primary address of the billing provider is populated,
+,
+Rendering Provider **,
+The rendering provider is replaced with the Billing Provider information for all UB 04 Claims except for - Outpatient and Medicare Part B Outpatient Crossover Claims ,
+For any Out patient State Hospital Claims the Provider Attending the Patient has been included as the Rendering Provider,
+"For certain CMS 1500 Claims listed in bold below, the Rendering Provider information is not included because they may or may not have a rendering provider in most cases",
+LEAs/Home Infusion /Therapy Services/Portable X-rays/Laboratory X ray/DME/Optical/Ambulance,
+The Rendering provider information is not available for any Pharmacy claims,
+After all the above replacement whenever the Rendering provider information is missing it is replaced by the Billing Provider information,
+The Rendering Provider County Code/ Name and Rendering Provider Taxonomy Code is also replaced with the Billing Provider Information based on the above Criteria ,
+,
+Rendering Address**,
+The Rendering Provider Service facility address is not always submitted ,
+The CSRA has a Certain Algorithm to calculate the Rendering provider Location Code. ,
+"For the claims when the Rendering Provider information is pulled from the claim ( like the Professional Claim for example), the location code is based on the CSRA Algorithm",
+,
+Number of Visits***,
+Professional Claims- The Visits for CMS 1500 are calculated based on the member visits by Service dates at available location Information,
+Institutional Claims The Visit are some times based on length of stay or number of Days stayed at the facility,
+Pharmacy Claims- The Visits for Pharmacy are really Scrips and are based on Member Visit to Pharmacy by Service date,
+,
+Details on Visit calculation is available on each tab with more specifics ,
+,
+Number of Procedures ****,
+The Number of Procedures performed are  count of Procedure code or revenue code depending on the claim type,
+For Pharmacy claims there are no Procedures Performed and so the Claim count is provided to get an Idea of Drug counts,
