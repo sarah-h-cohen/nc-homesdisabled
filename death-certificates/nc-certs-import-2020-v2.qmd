@@ -1,0 +1,329 @@
+---
+title: Import death certificates from nc 
+author: Sarah Cohen
+format:
+  html:
+    code-fold: show
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+engine: knitr
+---
+Read the 2020-2026 NC death certifications
+
+::: callout-note  
+
+This assumes you have the original data saved in a subfolder called `data/all_death_files/yr2020-forward/`
+
+::: 
+
+Generally, the steps are this:
+
+1. Create the fixed-width format 
+2. Create the lookup tables for coded values. In this case, we need a list of named vectors, with the name as the original value and the value as the translation. They should be in the order we want the resulting factors to be in. 
+3. Read all of the raw text files into a single large data frame. 
+4. Apply the translations and replace the original values with the translations. 
+
+The only gotcha is that the names of the vectors with translations should be the same as the name of the variable , but with "_codes" appended to the name. 
+
+## Fixed-width specfications
+
+```{r}
+#| label: setup
+
+library(tidyverse)
+library(readr)
+library(janitor)
+library(lubridate)
+library(duckdb)
+library(here)
+
+
+rm(list = ls())
+
+# change this path if your data is organized differently
+
+here::i_am("death-certificates/nc-certs-import-2020-v2.qmd")
+
+```
+
+The fixed-width specs have the start positions, end positions, and names of the columns in the original text files. 
+
+```{r}
+#| label: fixed-width-specs
+#| code-fold: true
+nc_death_cols_2020 <- fwf_positions(
+  start = c(
+    1, 5, 7, 13, 14, 26, 27, 77, 78, 128, 138, 139, 189, 190, 191,
+    200, 201, 204, 205, 209, 211, 213, 215, 217, 222, 225, 227, 229, 230, 231,
+    232, 233, 236, 237, 239, 241, 245, 246, 247, 248, 249, 250, 251, 271, 272,
+    273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 316,
+    346, 376, 406, 436, 466, 496, 526, 529, 532, 535, 538, 541, 544, 547, 550,
+    553, 556, 559, 562, 565, 568, 571, 574, 575, 618, 701, 704, 705, 710, 876,
+    976, 977, 978, 979, 981, 983, 985, 989, 993, 994, 1075, 1081, 1082, 1112, 1162,
+    1172, 1182, 1232, 1242, 1252, 1280, 1308, 1317, 1345, 1485, 1495, 1505, 1533, 1543, 1553,
+    1560, 1588, 1597, 1625, 1653, 1736, 1739, 1808, 1858, 1908, 1958, 2008, 2058, 2108, 2109,
+    2159, 2409, 2439, 2467, 2470, 2498, 2503, 3342, 4298, 4326, 4328
+  ),
+  end = c(
+    4, 6, 12, 13, 25, 26, 76, 77, 127, 137, 138, 188, 189, 190, 199,
+    200, 203, 204, 208, 210, 212, 214, 216, 221, 224, 226, 228, 229, 230, 231,
+    232, 235, 236, 238, 240, 244, 245, 246, 247, 248, 249, 250, 270, 271, 272,
+    273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 315, 345,
+    375, 405, 435, 465, 495, 525, 528, 531, 534, 537, 540, 543, 546, 549, 552,
+    555, 558, 561, 564, 567, 570, 573, 574, 614, 657, 701, 704, 709, 714, 975,
+    976, 977, 978, 979, 982, 984, 988, 992, 993, 1023, 1075, 1081, 1111, 1161, 1171,
+    1181, 1231, 1241, 1251, 1279, 1307, 1316, 1344, 1349, 1494, 1504, 1532, 1542, 1552, 1559,
+    1587, 1596, 1624, 1652, 1680, 1738, 1740, 1857, 1907, 1957, 2007, 2057, 2107, 2108, 2158,
+    2408, 2438, 2466, 2469, 2497, 2502, 2504, 3391, 4325, 4327, 4355
+  ),
+  col_names = c(
+    "DOD_YR", "DSTATE", "FILENO", "VOID", "AUXNO", "MFILED", "GNAME", "MNAME", "LNAME", "SUFF", "ALIAS", 
+    "FLNAME", "SEX", "SEX_BYPASS", "SSN",
+    "AGETYPE", "AGE", "AGE_BYPASS", "DOB_YR", "DOB_MO", "DOB_DY", "BPLACE_CNT", "BPLACE_ST", "CITYC", "COUNTYC", 
+    "STATEC", "COUNTRYC", "LIMITS", "MARITAL", "MARITAL_BYPASS",
+    "DPLACE", "COD", "DISP", "DOD_MO", "DOD_DY", "TOD", "DEDUC", "DEDUC_BYPASS", "DETHNIC1", "DETHNIC2", 
+    "DETHNIC3", "DETHNIC4", "DETHNIC5", "RACE1", "RACE2",
+    "RACE3", "RACE4", "RACE5", "RACE6", "RACE7", "RACE8", "RACE9", "RACE10", "RACE11", "RACE12", "RACE13", 
+    "RACE14", "RACE15", "RACE16", "RACE17",
+    "RACE18", "RACE19", "RACE20", "RACE21", "RACE22", "RACE23", "RACE1E", "RACE2E", "RACE3E", "RACE4E", 
+    "RACE5E", "RACE6E", "RACE7E", "RACE8E", "RACE16C",
+    "RACE17C", "RACE18C", "RACE19C", "RACE20C", "RACE21C", "RACE22C", "RACE23C", "RACE_MVR", 
+    "OCCUP", "INDUST", "MANNER", "INJPL", "MAN_UC", "ACME_UC", "RAC",
+    "AUTOP", "AUTOPF", "TOBAC", "PREG", "DOI_MO", "DOI_DY", "DOI_YR", "TOI_HR", "WORKINJ", 
+    "CERTL", "TOI_UNIT", "ARMEDF", "DINSTI", "ADDRESS_D", "STNUM_D",
+    "PREDIR_D", "STNAME_D", "STDESIG_D", "POSTDIR_D", "CITYTEXT_D", "STATETEXT_D", "ZIP9_D", 
+    "COUNTYTEXT_D", "CITYCODE_D", "STNUM_R", "PREDIR_R", "STNAME_R", "STDESIG_R", "POSTDIR_R", "UNITNUM_R",
+    "CITYTEXT_R", "ZIP9_R", "COUNTYTEXT_R", "STATETEXT_R", "COUNTRYTEXT_R", "DETHNICE", 
+    "NCHSBRIDGE", "DMIDDLE", "DDADF", "DDADMID", "DMOMF", "DMOMMID", "DMOMMDN", "REFERRED", "POILITRL",
+    "HOWINJ", "TRANSPRT", "COUNTYTEXT_I", "COUNTYCODE_I", "CITYTEXT_I", "CITYCODE_I", 
+    "STATECODE_I", "DMAIDEN", "STATEBTH", "DTHCOUNTRYCD", "DTHCOUNTRY"
+  )
+)
+
+```
+
+Create the map function to read in the proper files
+
+```{r}
+#| label: get-file-list
+
+
+# what are the file names? 
+import_list <- 
+  str_c ( "data/all_death_files/yr2020-forward/", list.files("data/all_death_files/yr2020-forward"))
+
+import_list
+```
+
+Import death list then combine into one sorted data frame
+
+```{r}
+#| label: import-all-deaths
+
+death_list <- map ( import_list , 
+  function(x) {
+    deaths <- read_fwf(
+        file = x,
+        col_positions = nc_death_cols_2020,
+        col_types = cols(.default = col_character()),  # read everything as character not number or date
+        na = c("", " ", "Blank"), 
+        locale= locale(encoding="WINDOWS-1252")  # to fix <92> instead of apostrophes and remove warnings
+    ) |> 
+    clean_names() |> 
+    rowid_to_column(var="orig_rowid")
+    
+    
+    return (deaths)
+  }
+
+)
+
+ncdeaths <- list_rbind ( death_list) |>  arrange (dod_yr, orig_rowid )
+
+```
+
+## Create lookup tables
+
+Import the lookup tables that I saved in the program `all_death_files/certificates-translation-codes.R`, which is saved as `death-cert-translation-codes-2020.RDS`
+This is a list of named vectors, with the name of the column as the name of the list item. 
+
+```{r}
+#| label: lookup-tables
+
+translation_codes <- readRDS(here("death-certificates/data/all_death_files/death-cert-translation-codes-2020.RDS"))
+
+```
+
+Apply all of the lookup codes to create factors instead of character values -- better for making summary charts, etc.  First create a function that can be called
+
+```{r}
+#| label: code-translation-function
+
+# code =  the name of the code value
+# translation map = named vector for translation
+
+code_to_factor <- function(x, codes) {
+  codes  <- unlist(codes)                                  # back to a named vector
+  codes <- unlist(codes)
+  factor(as.character(x),
+         levels  = names(codes),               # the original codes 
+         labels  = paste(names(codes), codes, sep = " - "),   # what to show: 
+         ordered = TRUE)
+}
+
+# remove "codes" from the end of the vector names.
+names(translation_codes) <- str_remove(names(translation_codes), "_codes$")
+
+translated_deaths <- ncdeaths |>
+  mutate(across(any_of(names(translation_codes)),
+                \(x) code_to_factor(x, translation_codes[[cur_column()]])))
+
+```
+
+Apply the translations and replace the original values with these. If you want to keep the original and add these instead, uncomment the .names part and add a comma just above it. 
+
+## Minimal cleanup
+
+1. Remove the 25 or so "Void" records. 
+2. create a (pretty) unique id with meaning for the remaining ones. I'll keep the record ID for true uniqueness. This just makes it make a little more sense when we go back and forth and want to look things up. 
+3. Create a location of death and a location of residence that isn't across so many columns.  
+4.  Convert dod, doi, dob to dates.
+5.  Remove last 4 digits wherever there are 9-digit zipcodes.
+6. Eliminate all of the race codes, and just keep the ncha standardized version. 
+7. Combine last, first , middle names of father, mother. 
+8. Combine first and middle of decedant.
+9. Convert age to number, and set to 0 if the agetype isn't years.
+10. for dod and dob, there are about 20 records with invalid dates. Just leave them as na. Change tod to time.
+11. Move around the variables so that they make sense (eg, put the causes of death together, along with the autopsy information; put the residence and death locations together; put the mother and father information together; and put the demographic information together such as occupation, industry, nchs code, sex, marital status, etc. 
+)
+
+
+::: {.callout-note}
+
+In about 8 months of 2020, they did not fill out the address of death or the pieces of the death address. The address is in the insitution column instead of "HOME" when the location is home.  I'm going to work on that here. 
+
+Keep all of the geography codes even if they're redundant. I'm unclear as to when / if they are filled out when the residence or death location are not. 
+
+::: 
+
+
+
+
+There is a slight chance that these won't be unique. It can happen if two people with the same DOB and the same DOD have the same first and last name. (Say, twins who die together on the same day) 
+
+
+
+```{r}
+#| label: create-unique-id
+#| warning: false
+
+library(glue)
+
+
+# There are 22 rows with invalid dobs -- they have "99" in the year,month, day or all. These will not convert to dates, but I'm not worried about it.
+
+deaths_unique <- 
+  labeled_data |>
+  filter ( str_detect ( void, "VOID", negate=TRUE)) |> 
+  mutate ( dod_full = glue("{dod_yr}{dod_mo}{dod_dy}") |> as.character(), 
+           dob_full = glue("{dob_yr}{dob_mo}{dob_dy}") |> as.character(), 
+           death_id = glue("{dod_full}_{lname}_{gname}_{dob_full}"),
+           dod = ymd(dod_full), 
+           dob = ymd(dob_full),
+          .after=orig_rowid
+)
+
+
+
+
+```
+
+There were still 17 duplicates. I think I know why -- they may be "alias" names so they're there twice. But I frankly didn't look into it too closely for that small number of rows. Instead, I'm just saving the last one found because they do appear to add information later on. This is done in data.table so it doesn't take forever. 
+
+```{r}
+
+library (data.table)
+deaths_unique_last <- 
+  data.table(deaths_unique ) |> 
+  unique( by = "death_id", fromLast = TRUE) |> 
+  as_tibble()
+  
+
+
+```
+
+
+## Save relevant info
+
+I'm moving and removing some of the columns so that: 
+
+* Things that go together are together, like the names of mothers and fathers. 
+* Removed the gazillion race and ethnicity codes, and just kept the recodes that are done for NCHS
+* Removed items that are always blank / redacted
+
+
+```{r}
+#| label: remove-races-etc
+
+deaths_save <- 
+  deaths_unique_last |> 
+  mutate ( dethnice = 
+          case_when ( 
+              dethnice == "100" ~ "Non-Hispanic",
+              (dethnice >= "200" & dethnice < "300") ~ "Hispanic" , 
+              .default = "Unknown") |> 
+           factor(levels = c("Non-Hispanic", "Hispanic", "Unknown"))
+  ) |> 
+  select ( - c(ssn, dob_full, dod_full, fileno, ends_with("bypass"), dethnic1:race23c)) 
+
+
+```
+
+
+
+```{r}
+
+deaths_save <- 
+  deaths_save |> 
+  select ( death_id, dod, dob, tod, manner, dstate, lname, mname, gname, dmaiden,
+          suff, alias, sex, agetype, age, 
+            bplace_cnt, bplace_st, 
+            stnum_r:countrytext_r, 
+            cityc, countyc, statec, limits, 
+            marital, dplace, cod, dinsti,
+            address_d:citycode_d,
+            disp, tod, deduc, 
+            occup, indust,
+            nchsbridge,  dethnice, 
+            injpl:toi_unit, howinj,
+            flname, ddadf, ddadmid, dmomf, dmommid, dmommdn, 
+            dod_yr, dod_mo, dod_dy, 
+            dob_yr:dob_dy, 
+            dthcountrycd , dthcountry )
+
+
+```
+
+# save to duckdb and to csv
+
+```{r}
+#| label: setup-duckdb
+
+con <- dbConnect(duckdb(), "data/deaths2020up.duckdb")
+dbWriteTable(con,  "deaths_from2020", deaths_save, overwrite=TRUE)
+dbDisconnect(con, shutdown=TRUE)
+
+
+# now write an Excel table
+library(writexl)
+
+writexl::write_xlsx(deaths_save, path="data/deaths2020up.xlsx")
+
+
+```
+
+
+  

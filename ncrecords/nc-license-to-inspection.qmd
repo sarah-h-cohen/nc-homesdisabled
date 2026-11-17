@@ -209,7 +209,7 @@ download_webpage <- function(url, output_file = "page.html", delay = 2) {
 ```
 
 
-Retreive every page and save it into the inspection_pages subfolder
+Retreive every page and save it into the inspection_pages subfolder. (Had to do this over to pick up the government ones. Normally would just do all pageids, not just the government ones)
 
 
 ```{r}

@@ -1,0 +1,338 @@
+---
+title: "Initial death certificate analysis"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-tools: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+
+```{r}
+#| label: setup
+
+pacman::p_load("tidyverse", "lubridate", "janitor", "here", "glue", "ggthemes", "forcats", "gt", "reactable", "gtExtras", "gtsummary", "reactablefmtr", "writexl")
+invisible(here::i_am("death-certificates/cod-icf-deaths-firstpass.qmd"))
+
+
+```
+
+```{r}
+#| label: load-data
+
+group_labels <- c (
+  "RHA Deaths"       = "RHA",
+  "Non-RHA, Non-Gov" = "Other private",
+  "Gov"              = "Government"
+)
+
+level_labels <- c (
+  "3" = "3 Focused review",
+  "2" = "2 Vigilance",
+  "1" = "1 Expected (chronic disease)",
+  "0" = "0 Baseline (lifelong condition)"
+)
+
+deaths <-
+  readRDS ( here ( "death-certificates/cod-deaths-coded.RDS")) |>
+  mutate (
+    # government deaths have no facility name; use the owner
+    `Facility Name` = if_else ( df_source == "Gov", "North Carolina", `Facility Name`),
+    group = factor ( group_labels[df_source], levels = group_labels),
+    death_date = ymd ( str_sub ( death_id, 1, 8)),
+    level = factor ( level_labels[as.character ( max_level)], levels = level_labels),
+    age   = as.numeric ( ymd ( str_sub ( death_id, 1, 8)) - ymd ( str_sub ( death_id, -8))) / 365.25
+  )
+
+causes <-
+  readRDS ( here ( "death-certificates/cod-causes-coded.RDS")) |>
+  left_join ( select ( deaths, death_id, group), join_by ( death_id))
+
+```
+
+## Death overview
+
+```{r}
+#| label: overview-table
+
+deaths |>
+  group_by ( group) |>
+  summarise (
+    deaths     = n(),
+    facilities = n_distinct ( `Facility Name`),
+    median_age = median ( age),
+    natural    = sum ( manner == "Natural"),
+    accident   = sum ( manner == "Accident"),
+    homicide   = sum ( manner == "Homicide"),
+    other      = sum ( manner %in% c ( "Pending", "Could Not Be Determined")),
+    autopsy    = sum ( autop == "Yes", na.rm = TRUE),
+    autopsy_pct = autopsy / deaths
+  ) |>
+  gt ( rowname_col = "group") |>
+  fmt_number ( median_age, decimals = 0) |>
+  fmt_percent ( autopsy_pct, decimals = 0) |>
+  cols_merge ( c ( autopsy, autopsy_pct), pattern = "{1} ({2})") |>
+  tab_spanner ( "Manner of death", c ( natural, accident, homicide, other)) |>
+  cols_label (
+    deaths = "Deaths", facilities = "Facilities", median_age = "Median age at death",
+    natural = "Natural", accident = "Accident", homicide = "Homicide",
+    other = "Pending or undetermined", autopsy = "Autopsy"
+  ) |>
+  tab_source_note ( "Autopsy status was not recorded for 7 deaths.")
+
+```
+
+## How serious were the causes listed?
+
+Each death is placed at the highest level among all of the causes on its record. The levels flag records for a closer look; they are not findings of neglect.
+
+- **3 Focused review:** commonly linked to lapses in supervision, feeding, hydration, skin care or safety (choking, falls, dehydration, bedsores)
+- **2 Vigilance:** good monitoring and timely treatment often change the outcome (sepsis, pneumonia, seizures)
+- **1 Expected:** chronic disease, cancer or end-of-life decline
+- **0 Baseline:** only the person's lifelong disability is listed
+
+```{r}
+#| label: level-chart
+#| fig-width: 9
+#| fig-height: 3.2
+
+level_colors <- c ( "#1f3a5f", "#4f78a8", "#93afd0", "#d3dfec") |> set_names ( level_labels)
+
+level_shares <-
+  deaths |>
+  count ( group, level, .drop = FALSE) |>
+  group_by ( group) |>
+  mutate (
+    pct = n / sum ( n),
+    group_label = glue ( "{group}\n{sum(n)} deaths, median age {round(median(deaths$age[deaths$group == first(group)]))}")
+  ) |>
+  ungroup () |>
+  mutate ( group_label = fct_rev ( fct_inorder ( group_label)))
+
+ggplot ( level_shares, aes ( x = pct, y = group_label, fill = level, group = level)) +
+  geom_col ( position = position_fill ( reverse = TRUE), width = 0.6, color = "white", linewidth = 0.8) +
+  geom_text (
+    aes ( label = if_else ( pct >= 0.05, scales::percent ( pct, accuracy = 1), ""),
+          color = level %in% level_labels[1:2]),
+    position = position_fill ( vjust = 0.5, reverse = TRUE), size = 3.6
+  ) +
+  scale_fill_manual ( values = level_colors, name = NULL) +
+  scale_color_manual ( values = c ( `TRUE` = "white", `FALSE` = "#3e3f3a"), guide = "none") +
+  scale_x_continuous ( labels = scales::percent, expand = c ( 0, 0)) +
+  labs (
+    title = "RHA deaths were the most likely to include a cause calling for focused review",
+    subtitle = "Share of each group's deaths by the highest level among their listed causes",
+    x = NULL, y = NULL
+  ) +
+  theme_minimal ( base_family = "Lato", base_size = 12) +
+  theme (
+    legend.position = "top", legend.justification = "left",
+    panel.grid = element_blank (),
+    axis.text.y = element_text ( hjust = 0, color = "#3e3f3a"),
+    plot.title.position = "plot",
+    # reactablefmtr also has a margin() function
+    plot.margin = ggplot2::margin ( 5, 15, 5, 5)
+  ) +
+  guides ( fill = guide_legend ( nrow = 1))
+
+```
+
+```{r}
+#| label: level-table
+
+deaths |>
+  tabyl ( level, group) |>
+  adorn_totals ( c ( "row", "col")) |>
+  adorn_percentages ( "col") |>
+  adorn_pct_formatting ( digits = 0) |>
+  adorn_ns ( position = "front") |>
+  gt ( rowname_col = "level") |>
+  tab_style ( cell_text ( weight = "bold"), cells_body ( rows = level == "Total")) |>
+  tab_style ( cell_text ( weight = "bold"), cells_stub ( rows = level == "Total")) |>
+  tab_style ( cell_text ( weight = "bold"), cells_body ( columns = Total)) |>
+  tab_header ( "Deaths by highest level, count (share of column)") |> 
+  tab_source_note ( "Other data show that RHA reports serving residents with more severe disabilities")  
+
+```
+
+## Deaths calling for focused review
+
+Every death with at least one level 3 cause. Search across all columns with the box at the top, filter within a column with the boxes under the headers, or click a header to sort. Click the arrow at the left of a row to see every cause listed on that death, from most to least serious. (A complete list is linked below)
+
+```{r}
+#| label: level-3-table
+
+level_3_ids <- deaths |> filter ( max_level == 3) |> pull ( death_id)
+
+review_areas <-
+  causes |>
+  filter ( sentinel_level == 3) |>
+  group_by ( death_id) |>
+  summarise ( review_areas = paste ( unique ( care_focus_area), collapse = "; "))
+
+uc_labels <-
+  readRDS ( here ( "death-certificates/cod_sentinel_coding.RDS")) |>
+  select ( uc = code, uc_label = short_label)
+
+level_3 <-
+  deaths |>
+  filter ( death_id %in% level_3_ids) |>
+  left_join ( review_areas, join_by ( death_id)) |>
+  left_join ( uc_labels, join_by ( uc)) |>
+  select ( death_id, group, `Facility Name`, lname, death_date, age, manner, autop,
+           top_labels, review_areas, uc_label) |>
+  arrange ( desc ( death_date))
+
+# every cause on each death, most serious first, for the expandable rows
+level_3_causes <-
+  causes |>
+  filter ( death_id %in% level_3_ids) |>
+  arrange ( death_id, desc ( sentinel_level)) |>
+  select ( death_id, rac, short_label, sentinel_level, care_focus_area) |>
+  split ( ~ death_id)
+
+level_3_table <- reactable (
+  select ( level_3, -death_id),
+  theme = nytimes ( font_size = 13, header_font_size = 11, cell_padding = 6),
+  class = "nyt-table",
+  searchable = TRUE,
+  filterable = TRUE,
+  highlight = TRUE,
+  wrap = TRUE,
+  defaultPageSize = 25,
+  showPageSizeOptions = TRUE,
+  defaultColDef = colDef ( headerVAlign = "bottom", vAlign = "top"),
+  columns = list (
+    group            = colDef ( name = "Group", minWidth = 100),
+    `Facility Name`  = colDef ( name = "Facility", minWidth = 140),
+    lname            = colDef ( name = "Last name", minWidth = 90),
+    death_date       = colDef ( name = "Date of death", format = colFormat ( date = TRUE), minWidth = 90),
+    age              = colDef ( name = "Age", format = colFormat ( digits = 0), minWidth = 55, align = "right", filterable = FALSE),
+    manner           = colDef ( name = "Manner", minWidth = 80),
+    autop            = colDef ( name = "Autopsy", minWidth = 70),
+    top_labels       = colDef ( name = "Level 3 causes", minWidth = 180, style = list ( fontWeight = 600)),
+    review_areas = colDef ( name = "Level 3 care areas", minWidth = 150),
+    uc_label         = colDef ( name = "Official cause", minWidth = 140)
+  ),
+  details = function ( index) {
+    level_3_causes[[level_3$death_id[index]]] |>
+      select ( -death_id) |>
+      reactable (
+        theme = nytimes ( font_size = 12, header_font_size = 10, cell_padding = 4),
+        fullWidth = FALSE,
+        columns = list (
+          rac             = colDef ( name = "Code", width = 70),
+          short_label     = colDef ( name = "Cause", width = 260),
+          sentinel_level  = colDef ( name = "Level", width = 60, align = "right"),
+          care_focus_area = colDef ( name = "Care area", width = 200)
+        )
+      )
+  }
+)
+
+# plain divs rather than add_title(), which makes h1/h2 tags that pick up the page's heading styles
+htmltools::div (
+  class = "nyt-wrap",
+  htmltools::div ( class = "nyt-title", "Deaths with at least one cause calling for focused review"),
+  htmltools::div ( class = "nyt-subtitle",
+    glue ( "{nrow(level_3)} deaths in North Carolina ICFs, {year(min(deaths$death_date))} to {year(max(deaths$death_date))}")),
+  level_3_table,
+  htmltools::div ( class = "nyt-source", "Source: N.C. death certificate records; cause-of-death levels assigned by the project team.")
+)
+
+```
+
+```{css}
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@400;600;700&display=swap');
+
+.nyt-wrap {
+  font-family: "Libre Franklin", "Franklin Gothic Medium", Arial, sans-serif;
+  color: #333333;
+}
+.nyt-title    { font-size: 20px; font-weight: 700; color: #121212; }
+.nyt-subtitle { font-size: 14px; margin-bottom: 0.75rem; }
+.nyt-source   { font-size: 11px; color: #999999; margin-top: 0.5rem; }
+
+/* let the NYT theme's plain headers win over the blue headers in custom.scss */
+.nyt-table .rt-header {
+  background-color: transparent;
+  color: inherit;
+  font-variant: normal;
+}
+
+```
+
+## Download the data
+
+[Download the full spreadsheet (Excel)](https://docs.google.com/spreadsheets/d/1rnzBfH_HJdtZXzlkmqerwrVyiDNlp1q-/edit?usp=drive_link&ouid=109144084184131668758&rtpof=true&sd=true)
+
+The workbook has four sheets:
+
+- **Deaths:** every death in the original combined file, one row each, with the coding columns added at the right
+- **Causes:** one row for each cause listed on each death, with its plain-language label, care area and level
+- **Code lookup:** every cause code in the data with its definition, care area and level
+- **About:** what the levels and flags mean
+
+```{r}
+#| label: save-excel
+#| eval: false
+
+about <- tribble (
+  ~item, ~meaning,
+  "Level 3 Focused review", "Commonly linked to lapses in supervision, feeding, hydration, skin care or safety (choking, falls, dehydration, bedsores)",
+  "Level 2 Vigilance", "Good monitoring and timely treatment often change the outcome (sepsis, pneumonia, seizures)",
+  "Level 1 Expected", "Chronic disease, cancer or end-of-life decline",
+  "Level 0 Baseline", "The person's lifelong disability or a condition present from birth",
+  "max_level", "Highest level among all causes listed on the death. Levels flag records for a closer look; they are not findings of neglect.",
+  "uc", "Official (underlying) cause of death: the manual code when there is one, otherwise the ACME code",
+  "flag_infection_swallow", "Sepsis or pneumonia along with a sign of swallowing risk",
+  "flag_ill_defined_only", "Cardiac arrest, sudden cardiac death or unknown cause, with nothing else listed except lifelong conditions",
+  "flag_seizure_sudden", "Epilepsy or seizures along with a sudden or ill-defined death",
+  "flag_assault_sequela", "Lasting effects of an earlier assault (Y871); the injury may predate the ICF stay",
+  "flag_disability_only", "Every cause listed is a lifelong condition or epilepsy",
+  "flag_bowel_unexplained", "A blocked or stalled bowel with no other explanation listed",
+  "flag_seizure_pneumonia", "Epilepsy or seizures along with pneumonia",
+  "needs_review", "Any flag, on a death without a level 3 cause"
+)
+
+deaths_sheet <-
+  readRDS ( here ( "death-certificates/cod-icf-combined-deaths.RDS")) |>
+  mutate ( `Facility Name` = if_else ( df_source == "Gov", "North Carolina", `Facility Name`)) |>
+  left_join (
+    deaths |> select ( death_id, group, age, level, uc:needs_review, -any_of ( c ( "max_level"))),
+    join_by ( death_id)
+  ) |>
+  left_join ( select ( deaths, death_id, max_level), join_by ( death_id))
+
+causes_sheet <-
+  causes |>
+  select ( death_id, group, order, code = rac, short_label, sentinel_level, care_focus_area,
+           description, plain_language_definition)
+
+write_xlsx (
+  list (
+    Deaths        = deaths_sheet,
+    Causes        = causes_sheet,
+    `Code lookup` = readRDS ( here ( "death-certificates/cod_sentinel_coding.RDS")),
+    About         = about
+  ),
+  here ( "death-certificates/icf-deaths-cause-coded.xlsx")
+)
+
+```

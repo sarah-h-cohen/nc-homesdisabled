@@ -1,0 +1,267 @@
+---
+title: "Money"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-fold: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+  eval: false
+
+engine:
+  knitr
+---
+
+
+::: {.callout-important}
+
+I've given up on making a comprehensive / canonical list of the NPI , Medicaid billing and Medicaid provider numbers. This is especially a problem with the billing and the money -- they just don't match. Instead, I'm just going to work on it by name -- who is it that is identified in the NC Tracks data? This will involve going through the list of names and making them standardized for our purposes. 
+
+To do this again: Make sure to correct the Clear Creek NPI from the licensing data if we're using it. It's wrong there. See the Excel sheet saved here for the right one (it's not called Clear Creek there - it's called )
+
+::: 
+
+
+```{r}
+#| label: setup
+
+pacman::p_load("tidyverse", "janitor", "here", "lubridate", "readxl", "glue", "data.table", "arrow", "duckdb")
+here::i_am("money.qmd")
+
+
+
+```
+
+
+## Rate sheets
+
+
+## Get the payments made FY 2023-FY 2025 
+
+There is no record yet for FY 2026, which ended June 30, 2026. 
+
+I checked, and there are no provider classifications that are different than rendering classficiations for the purpose of ICFs. THere is only one classification for ICFs - They're considered custodial care, not residential treatment. 
+
+```{r}
+#| label: load-money
+
+full_money <- readRDS("nctracks/icf_payments_3year.RDS")  |> 
+  filter (rendering_taxonomy_code == "315P00000X")
+
+```
+
+Check the names and npis of the billing and rendering providers: 
+
+```{r}
+#| label: count-names
+
+
+
+full_money |> 
+  group_by ( billing_npi_atypical, billing_provider_name, billing_provider_dba_name, 
+             rendering_npi_atypical, rendering_provider_name, fiscal_year) |> 
+  summarize ( payment_recs = n() , 
+              amount = sum(num_amount_paid), 
+              .groups = "drop") |> 
+  
+
+
+
+```
+
+## Match against the rate sheets
+
+I'm not sure if these NPIs match the rate sheets, so let's see how many of them we can get matched. 
+
+I'm using the 9/30/2025 rate sheet - there is one for 2022, but nothing in between. I can go back and look - there was an increase then a decrease due to covid and medicaid expansion, but it's not showing up in the data. This will be a wild estimate just to make sure that we have them matched up. 
+
+
+Two documents are from 2022, which I will use for 2023-2024. Then there are a series of documents for 2025, and I can't quite figure out what is changed. They do add new NPI's and there are no other identifiers that we can use from the names, so it's important to get those right. 
+
+These used to be identified by the name of the facility, which may or may not be standardized. I need to get them into some form that I can use. The easiest way to do this is frankly by hand, using the list that Malena figured out. I've done that on an Excel workbook. 
+
+As of Oct 2025, the rates increased and the purchase of the chain by RHA had "New NPI added" without the name of the home. Here are the NPI's that have that, and their associated addresses
+
+1033009741 466 S Creek Rd , Orrum NC , 34G243, Westside Residential
+1225928930 68 N Mitchell Ford Rd, Clarkton NC, 34G232, Northridge Residential
+1235029943 359 Fire Tower Rd, Richlands NC 28574, 34G284, Countryview Residential 
+1316837024 369 E Green St Clarkton, NC 28433, 34G257, Midlake Residential
+1336039049 5691 Mack Linberry Rd, Climax NC 27233, 34G307, Timberlea Group Home
+1346130051 1907 Northbay Dr , Browns Summit NC 27214, 34G168,
+Northbay Group Home
+1437041142 313 East Brookwood Ave,  Liberty NC 27298, 34G305, Brookwood
+1437049145 202 Friendway Dr , Greensboro NC 27409, 34G169, Friendway Group Home
+1508756214 704 Carolina Ave North , Ahoskie NC 27910, 34G297, Roanoke Place
+1538059241 912 Avent Ferry Rd, Holly Springs NC 27540, 34G283, Trotters Bluff
+1629968334 904 Avent Ferry Rd, Holly Springs NC 27540, 34G278, Avent Ferry Home
+1780574491 483 S Creek Rd Orrum NC 28369, 34G315, Corbell Residential
+1861382574 353 Elm St, Fair Bluff NC 28439, Riverside Residential
+
+To estimate the amounts for 2025, exclude them from the list (use the 9/30/2025 list, not the 6/1/2026 list.) 
+
+The public ones do have an NPI, the just don't have a license number. 
+
+O'Berry: 1508902032
+Caswell: 1457578213		
+Murdoch: 1699811125
+Black Mountain: 1861610222
+J Iverson Riddle: 1740340868
+
+
+Take the July 22, 2025 rate sheet, which should reflect what the previous rates were. Concatenate the duplicate NPIs. (There is also one on 9/30/2025 that has a note that says "8% rate reduciton" on a bunch of the rows, but then a later one seems to remove it, so I can't tell if it was reduced or not. I'm using this one, since it would have been after the FY 2025. We don't have a rate sheet for the actual fiscal years.)
+
+```{r}
+#| label: load-rate-sheets
+
+rate_sheet <- readRDS("nctracks/all_rates_by_npi_2025.RDS") |> 
+  filter ( source_file == "icf_2025_07_22") |> 
+  # there are 5 dupes for homes that are basically thes ame places (sand ridge, for example)
+  summarize ( across ( 
+                  everything() , 
+                  \(x) paste (unique(x), collapse="; ")  
+                  ), 
+            .by = npi
+            )
+
+
+```
+(Goes from 337 to 334 rows)
+
+
+```{r}
+#| label: get-xl-2022
+
+
+icfrates_2022_raw <- read_excel("nctracks/icfrates/icfrates_2022_02_09.xlsx" , 
+                  range="B7:L343"  , col_names = c("npi", "blank", "provider_id", "provider_name", "chain_rate", "covid15", "accomodation",
+                                                  "npi2", "covid05", "covid10", "effective_2022"), 
+                   col_types = c("text", "skip", "text", "text", "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric")
+              ) |> 
+            summarize ( across ( 
+                  everything() , 
+                  \(x) paste (unique(x), collapse="; ")  
+                  ), 
+            .by = npi
+             ) |> 
+              select ( npi, provider_id, provider_name, chain_rate, npi2, effective_2022) 
+
+icfrates_2022_raw |> 
+  filter ( npi != npi2)
+
+icf2022 <-
+  icfrates_2022_raw |> 
+  select ( npi22 = npi, provider22 = provider_id, name22 = provider_name, chain_rate, rate22 = effective_2022)
+
+
+```
+I have no idea what "chain rate" means -- whether it refers to a chain of providers, or if it refers to a chain that you multiply something by. 
+
+Now merge them to get the rates and see what we have. (Org name is always blank)
+
+```{r}
+#| label: rates-match
+
+rates <-
+  rate_sheet |> 
+  mutate ( rate25 = parse_number(rate), 
+           eff_date25 = as.Date(eff_date)) |> 
+  select ( npi, provider25 = provider, name25 = name,  rate25 , eff_date25) |> 
+  full_join ( icf2022, join_by ( npi == npi22)) |> 
+  filter ( !is.na(npi))
+
+
+
+```
+There doesn't appear to be any difference between the npis -- unlike later in 2025, there are no additional or removed npis from what I can tell ( 334 unique npis in both years)
+
+
+## Check npis rates against the actual spending
+
+
+```{r}
+#| label: spending-npi-matched
+
+full_money |> 
+  rowid_to_column() |> 
+  left_join ( rates, join_by ( billing_npi_atypical == npi) ) |> 
+  arrange ( rowid)  |> 
+  get_dupes(rowid)
+
+
+
+```
+
+No dupes on rowid so I can keep going
+
+
+
+```{r}
+#| label: get-money-spreadsheet
+
+options(scipen=999)
+
+money_with_rates <-
+  full_money |> 
+  filter ( !is.na(billing_npi_atypical)) |> 
+  select ( fiscal_year, 
+          payer , 
+          billing_npi = billing_npi_atypical,
+          billing_name = billing_provider_name, 
+          billing_dba = billing_provider_dba_name, 
+          billing_address, 
+          rendering_npi = rendering_npi_atypical, 
+          rendering_name = rendering_provider_name, 
+          rendering_address , 
+          recips = num_number_of_recipients, 
+          visits = num_number_of_visits, 
+          amount_paid = num_amount_paid,
+          ) |> 
+  left_join ( rates |>  select ( npi, medicaid_id = provider25, rate_name = name25 ,
+                                 rate25, rate22), 
+              join_by ( billing_npi == npi)
+            ) |>  
+  arrange (fiscal_year, billing_npi, desc(billing_name), desc(rendering_address)) |> 
+  group_by ( fiscal_year, billing_npi) |> 
+  mutate ( total_days = sum(visits, na.rm=TRUE) ,
+           total_amt = sum( amount_paid, na.rm=TRUE), 
+           missing_days = sum (is.na(visits)) , 
+           missing_amts = sum(is.na(amount_paid))
+  ) |> 
+  slice_head (n=1) |> 
+  select (fiscal_year, npi=billing_npi, 
+          medicaid_id, billing_name, billing_dba,
+          rendering_name, rendering_address,
+          total_days, total_amt, missing_days, missing_amts, 
+          rate25, rate22, rate_name) |> 
+  mutate ( rate22 = parse_number(rate22) ) |> 
+  ungroup()  
+  
+ 
+
+
+```
+
+Let's just save it as a spreadsheet so they can look at it more easily
+
+
+```{r}
+#| label: save-excel
+
+library(writexl)
+
+writexl::write_xlsx(money_with_rates, "../analysis/money_with_rates.xlsx")
+
+```
+
+The NPI for Clear Creek on the licensing data is wrong. 

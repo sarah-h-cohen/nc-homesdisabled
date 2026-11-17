@@ -1,0 +1,125 @@
+---
+title: "Untitled"
+format: html
+---
+
+Take Malena's list of deaths that she's already identified , combine them and make them into a common formatted list. Keep only the columns we care about for the purpose of death coding
+
+
+```{r}
+#| label: setup
+
+
+pacman::p_load("here", "tidyverse", "googlesheets4", "lubridate", "janitor")
+
+```
+
+
+Malena had found about 480 deaths in RHA, non-RHA and government addresses. These are in different sheets with slightly different layouts. Standardize them as I read them in. 
+
+```{r}
+#| label: get-all-malena-sheets
+
+icf_deaths_googlesheet <- "https://docs.google.com/spreadsheets/d/1gOmJrS_-U9knRArSrUeC5SwQ8Mf-WkY9oabl3OuBxu8/"
+
+
+
+rha_deaths <- read_sheet(icf_deaths_googlesheet, sheet="RHA Deaths")  |> 
+  select ( death_id , `Facility Name`) |>  mutate (`Facility Owner` = "RHA") 
+
+oth_deaths <- read_sheet (icf_deaths_googlesheet, sheet="Non-RHA, Non-Gov") |> 
+  select ( death_id, `Facility Name`,  `Facility Owner`) 
+
+gov_deaths <- read_sheet ( icf_deaths_googlesheet, sheet = "Gov")  |> 
+  select ( death_id ) |> 
+  mutate ( `Facility Name` = NA_character_, 
+           `Facility Owner` = "NC Government")
+
+```
+
+Now combine into a single list, retaining the name of the source sheet. (By hand)
+
+
+```{r}
+#| label: malena-death-list
+
+
+combined_list <- 
+  bind_rows ( 
+    "RHA Deaths" = rha_deaths,
+    "Non-RHA, Non-Gov" = oth_deaths,
+    "Gov" = gov_deaths, 
+    .id = "df_source"
+  )
+
+# get a list of unique death_id values for the SQL statement
+where_list <- combined_list |> distinct ( death_id) |> pull()
+
+```
+
+(this list is the same number of rows as the spreadsheet so there are no duplicates)
+
+Connect to the death database and extract just those death IDs from our larger 2020-forward death certificates data.
+
+```{r}
+#| label: connect-to-certs
+
+library(duckdb)
+con <- duckdb::dbConnect( duckdb(), here("death-certificates/data/deaths2020up.duckdb"))
+# dbListTables(con)
+
+```
+
+
+
+
+```{r}
+#| label: extract-matching-certs
+
+all_deaths <- dbGetQuery( con, 
+      glue::glue_sql ("SELECT * FROM deaths_from2020 WHERE death_id IN ({where_list*}) ",
+                  .con = con)
+) |> 
+  select ( death_id, dod, dob, manner, lname, gname, stnum_r:zip9_r, 
+           dplace, dinsti, address_d:zip9_d, countytext_d, man_uc:autop ,  howinj)  
+
+
+```
+
+(make sure to disconnect from the database and shut it down)
+
+```{r}
+#| label: disconnect-certs
+
+dbDisconnect(con, shutdown=TRUE)
+rm ( con)
+
+```
+
+Now I can link them back to where it happened
+
+
+```{r}
+#| label: join-to-certs
+
+deaths_working <-  
+  combined_list |> 
+  inner_join ( all_deaths , join_by ( death_id) )
+
+
+```
+
+save this for later
+
+
+```{r}
+#| label: save-icf-list
+
+saveRDS(deaths_working, "death-certificates/cod-icf-combined_deaths.RDS")
+
+
+```
+
+
+
+

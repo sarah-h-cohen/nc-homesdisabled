@@ -73,7 +73,7 @@ cause_per_row <-
   select ( death_id, df_source, manner, `Facility Name`, lname, acme_uc,  rac) |> 
   separate_rows ( rac, sep = "\\s+")  
 
-cause_per_row |>  count(rac) |> view()
+cause_count <- cause_per_row |>  count(rac) 
 
 
 ## Clean up the interim tables
@@ -95,13 +95,15 @@ all_code_list <-
   nchs_codes  |> 
   full_join ( icd_list, join_by ( code)) |> 
   # just keep the ones that are in our list
-  semi_join ( cause_per_row, join_by ( code == rac) ) |> 
+  inner_join ( cause_count, join_by ( code == rac) ) |> 
   mutate ( description = coalesce( icd_desc, nchs_desc)) |> 
-  select ( code, description, master_code, master_desc)
+  select ( code, description, master_code, master_desc, n)
 
 ## BOTH LISTS HAVE BIG HOLES FOR OUR DATA
 ## SO here, I'll put together the full list, which has one column for ICD10 and one for NCHS
 
+# send this to a google sheet for notes and categorization
+googlesheets4::sheet_write(all_code_list, "https://docs.google.com/spreadsheets/d/1wYl_WDe_zejhZALq8m1pN30IQzIpRrVX_2RDDZwocEY/edit?usp=sharing")
 
 
 causes_translated <-

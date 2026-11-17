@@ -1,0 +1,280 @@
+---
+title: "Money"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-fold: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+execute:
+  echo: true
+  warning: false
+  message: false
+  error: true
+  eval: false
+
+engine:
+  knitr
+---
+
+
+
+## Estimated payments based on rates
+
+One way to check the amounts that we know of from the state is to compare what they were paid 2023-2025 to what the state says the rates were per day. 
+
+There are not full documents for the payment rates. 
+
+Two documents are from 2022, which I will use for 2023-2024. Then there are a series of documents for 2025, and I can't quite figure out what is changed. They do add new NPI's and there are no other identifiers that we can use from the names, so it's important to get those right. 
+
+## Extract all possible NPIs from the docs
+
+One way to get started on getting the company / payee right is to extract all possible NPIs from the spreadsheets. There are two sets: 2022, 2025. 
+
+I imported all of the 2025-26 rates in the program called `import-2025-icfrates.r` and saved the output into `nctracks/all_rates_by_npi_2025.RDS`. I need to also import the two 2022 ones here: 
+
+```{r}
+#| label: setup
+
+pacman::p_load("tidyverse", "janitor", "here", "lubridate", "readxl", "glue", "data.table", "arrow", "duckdb")
+here::i_am("money.qmd")
+
+
+
+```
+
+NPI #		PROVIDER NUMBER	PROVIDER NAME	TOTAL CHAIN RATE	 ICF rate w/ 15% COVID increase	Accomodation Code	NPI #	 ICF rate w/ 5% COVID increase - Effective 3/1/2020-3/31/2020	 ICF rate w/ 10% COVID increase - Effective 4/1/2020-1/31/2022	ICF rate with $102.06 increase Effective 2/1/2022-12/31/9999
+
+
+```{r}
+#| label: get-xl-2022-1
+
+
+# skip the end date - it's always 9999-12-31
+v1 <- read_excel("nctracks/icfrates/icfrates_2022_02_01.xlsx", 
+                  skip=21, 
+                  col_types=c( rep("text", 4) , "numeric", "date", "skip" ) , 
+                  col_names = c("npi", "provider_id", "provider_name", "accommodation", "rate", "effective_date", "end_date" )
+) |>
+  select ( npi, provider_id, provider_name, rate, effective_date) |> 
+  rename_with (  \(x) glue("v1_{x}"), c("provider_id", "provider_name", "effective_date", "rate") )  
+
+ 
+# NOTE: Actual data starts on row 21, and because of that, there are only 7 columns used, not 11 with the notes
+
+
+v2 <- read_excel("nctracks/icfrates/icfrates_2022_02_09.xlsx" , 
+                  range="B7:L343"  , col_names = c("npi", "blank", "provider_id", "provider_name", "chain_rate", "covid15", "accomodation",
+                                                  "npi2", "covid05", "covid10", "effective_2022"), 
+                  col_types = c("text", "skip", "text", "text", "numeric", "numeric", "text", "text", "numeric", "numeric", "numeric")
+              ) |> 
+      full_join ( v1, join_by ( npi), relationship="many-to-many") |> 
+      group_by ( npi, v1_rate) |> 
+      slice_head (n=1) |> 
+      ungroup()
+
+
+
+
+v2 |>  get_dupes( npi)
+
+```
+
+This creates a many-to-many on a few places like Sand Ridge, where there are four different names under the same NPI. Just get rid of them -- the rates are always the same. 
+
+It appears the Feb 1 one is good for everything -check to see if there is anything missing or different: 
+
+```{r}
+
+v2 |> 
+  filter ( is.na(v1_provider_name) | v1_rate != effective_2022)
+
+v2 |>  
+  filter ( is.na(provider_name))
+
+
+```
+
+
+They all match. Just use the more recent one. 
+
+
+#### 2025 rates
+
+Already read in the program `import-2025-icfrates.R`
+
+```{r}
+
+stacked_df <- 
+  readRDS("nctracks/all_rates_by_npi_2025.RDS")  |> 
+  group_by ( npi) |> 
+  arrange ( npi, eff_date, source_file) |> 
+  group_by ( npi, eff_date) |> 
+  slice_tail(n=1) |> 
+  mutate (  end_date = na_if( end_date  , (mdy("12/31/9999") |>  as.POSIXct ())) 
+  ) |> 
+  ungroup() 
+
+
+
+  
+
+
+```
+
+There are a few cases in which there was an old owner and they had a different rate than the new owner, but for now I'm just going to take the most recent for 7/1/ and 10/1, then see if they are different. 
+
+```{r}
+#| label: get-rates-2025
+
+july_october_rates <- 
+  stacked_df |> 
+  select (npi, name, org_name, rate, eff_date  ) |> 
+  mutate ( eff_date = as.Date(eff_date)) |> 
+  filter ( eff_date %in% c("2025-07-01", "2025-10-01")) |> 
+  mutate ( eff_date = month( eff_date, label=TRUE, abbr=TRUE) ) |> 
+  fill ( org_name, .by =c(npi), .direction = ("updown") )  |> 
+  pivot_wider ( id_cols = c( npi, name, org_name), names_from = eff_date, values_from = rate)  
+  
+
+july_october_rates |> 
+  mutate ( across ( c(Jul, Oct) , \(x) round (x, digits=2))) |> 
+  filter ( Jul != Oct)
+
+# there were none
+
+july_october_rates |>
+  filter ( !is.na(Jul)) |> 
+  select ( npi, name, org_name, rate = Oct) |> 
+  get_dupes( npi) 
+
+```
+
+
+What this says is that every npi had the same rate published for July as for October, so there appeared to be no actual reduction in rates. (Each one was the most recent report for that effective date, so that one superceded the other.)
+
+
+## All NPI list 
+
+The NPI files from CMS are hard to work with and only are available for the current period, and there's limited information on any deactivated NPI's. To overcome these problems, [NBER](https://www.nber.org/research/data/national-plan-and-provider-enumeration-system-nppesnpi) has re-shaped the data into core, taxonomy and, license and identifier files to make it more like a relational database. That works for us -- we only want one taxonomy code, but don't care whether it's primary or not; we want all identifiers for those taxonomy codes. "Data for previous months/years can be accessed using the URL: https://data.nber.org/npi/YYYY/ where YYYY stands for the year of data you wish to access. "
+
+These are distributed most easily in csv files, so I'll use those for this version. (There is a SAS version, but the files are way bigger and don't have code translations or anything that makes them more valuable.)
+
+These were downloaded as of August 2026. I can go back and get them as of 2023  , 2024 and 2025. 
+
+### Read in core data
+
+
+```{r}
+#| label: read-core-data
+
+library(haven)
+
+core_path <- "nctracks/core_202608.csv"
+
+data <- read_csv(
+  core_path,
+  col_select = c(
+    npi, entity, replacement_npi, ein, porgname,
+    pmailline1, pmailcityname, pmailstatename, pmailzip,
+    plocline1, plocline2, ploccityname, plocstatename, ploczip,
+    penumdate, lastupdate, npideactreason, npideactdate, npireactdate,
+    aolname, aofname, aomname,
+    orgsubpart, parent_org_lbn, parent_org_tin,
+    ptaxgroup1, ptaxgroup2, certificationdate
+  ),
+  col_types = "c"
+) 
+
+
+library(data.table)
+org_data <- 
+  data |> 
+  setDT() |> 
+  _[entity=="Organization"]
+
+
+
+
+```
+
+I tried this using normal syntax, but it was WAY slow. Using data.table() and arrow libraries will make it much quicker. I'll save into a duckdb database.
+
+
+```{r}
+
+library(data.table)
+library(arrow)
+
+# Read only what you need, filter immediately
+orgs <- fread(
+           "nctracks/core_202608.csv",
+            select = c("npi", "entity", "replacement_npi", "ein", "porgname",
+                "pmailline1", "pmailcityname", "pmailstatename", "pmailzip",
+                "plocline1", "plocline2", "ploccityname", "plocstatename", "ploczip",
+                "penumdate", "lastupdate", "npideactreason", "npideactdate", "npireactdate",
+                "aolname", "aofname", "aomname",
+                "orgsubpart", "parent_org_lbn", "parent_org_tin",
+                "ptaxgroup1", "ptaxgroup2", "certificationdate"), 
+            colClasses = "character",
+            nThread = 8  
+)[entity == "Organization"]
+
+arrow::write_parquet(orgs, "orgs_only.parquet")
+
+orgs |> filter ( plocstatename == "NC") |> saveRDS("npi_nc_2026.RDS")
+
+
+```
+
+Get the entity types
+
+
+
+## Actual *nctracks* values
+
+I already processed the provider days from the NC Tracks site downloads, but only FY 2023-2025 were available. We have the 2022 and 2026 FY rates so we can take a look at that , but it appears that there were  no changes after 2022. 
+
+These are institutional days: 
+
+```{r}
+#| label: read-inst-days
+
+here()
+readRDS("nctracks/icf_payments_3year.RDS")
+
+```
+
+The values from 2023-2025 are supposed to be exactly what was paid. I looked for evidence of a cartesian join problem, and don't see it. I just see different payers for the same provider, which can happen depending on where the client is from . 
+
+Steps: 
+
+1. Get all of the possible NPI's for all NC facilities. This means looking at the licensing list and the payment. We'll only have the payment amounts for the latest is 2022, then 2025 and 2026. I believe part of the difference between original and revised ones has to do with NPIs used -- they change the NPI as the owner changes, so it can be different for the same home. 
+
+
+
+2. Match against the 2022-2025 values. 
+3. Check for true duplicates vs. splits across different payees. 
+
+In general, we can say that this is what the state says it has paid. We can bring it back to them. 
+
+Sources: 
+
+* Each year's payment spreadsheet - daily rates
+* 2023-2025 payment records, redacted for small, but at least within range. (We know how many beds and how many peope, and the lowest possible rate, so it's ok.)
+* Compare estimates to rate * residents. 
+
+What we don't know: 
+
+* Turnover - this affects how many residents they say they treated
+* How multi-places are handled. Does bear creek and walnut creek, for eample, have same payment? 
+* 
+
+
+

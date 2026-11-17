@@ -14,6 +14,7 @@
 
 # Output files from R CMD build
 /*.tar.gz
+**.sas7bdat
 
 # Output files from R CMD check
 /*.Rcheck/
@@ -59,7 +60,11 @@ death-certificates/data/
 qcor/qcordocs
 analysis/.claude/
 ncrecords/inspection_pages
+medicaid-provider/nber-npi/
 
 # vscode settings
 **/.vscode
+
+# claude code
+**/.claude
 

@@ -1,0 +1,107 @@
+---
+title: "Create review spreadsheets for UMass experts"
+author: "Sarah Cohen"
+date: last-modified
+format:
+  html:
+    theme:
+     - cosmo
+     - ../custom.scss
+    toc: false
+    code-tools: true
+    page-layout: full
+    embed-resources: true
+    df-print: paged
+
+execute:
+  echo: false
+  warning: false
+  message: false
+  error: true
+
+engine:
+  knitr
+---
+
+Plan: 
+
+1. Match the deaths we have with the licensing / inspection data from CMS. Add the residents, the number of deaths reported, etc. 
+
+2. Create two spreadsheet files for our expert: 
+
+  1. The original database record layout and the original records from the certificate database from our list. 
+  2. A spreadsheet that has some of the fields combined (names and addresses), reorganizes them into a more logical order for the spreadsheet, and include the name from the license and its 
+
+
+
+```{r}
+#| label: setup
+
+
+pacman::p_load("tidyverse", "lubridate", "janitor", "here", "glue", "gt", "reactable", "reactablefmtr", "writexl", "duckdb")
+invisible(here::i_am("death-certificates/cod-create-review-spreadsheets.qmd"))
+
+
+```
+
+
+```{r}
+#| lable: load-data
+
+combined_deaths <- readRDS("cod-icf-combined-deaths.RDS") |> 
+  select ( df_source, death_id, `Facility Name` , `Facility Owner`  ) 
+
+where_list <- combined_deaths |> distinct ( death_id) |> pull()
+
+con <- duckdb::dbConnect( duckdb(), here("death-certificates/data/deaths2020up.duckdb"))
+# dbListTables(con)
+
+orig_certificates <- 
+  dbGetQuery( con, 
+  glue::glue_sql ("SELECT * FROM deaths_from2020 WHERE death_id IN ({where_list*}) ",
+                  .con = con)
+  )
+
+
+```
+
+
+Notes on the original data layout: 
+
+* There are codes instead of words for things like place of death. I'm leaving the codes in in the original, then changing it in ours. 
+* We are likely missing any deaths that occurred at the home before Auguest of 2020, because they didn't fill out the death address correctly until then. In the beginning of 2020, they filled in the home address in the insititution column, and left the address of death blank (both the full address and the parsed address) .  There are only a handful of unparsed locations of death certificates after that. 
+* 
+
+
+Apply code translations and create factors. Keep the values as translated in the form "1 - translation" . 
+
+
+```{r}
+#| label: lookup-tables
+
+
+translation_codes <- 
+  readRDS(here("death-certificates/data/all_death_files/death-cert-translation-codes-2020.RDS"))
+
+```
+
+
+
+```{r}
+
+code_to_factor <- function(x, codes) {
+  codes  <- unlist(codes)                                  # back to a named vector
+  labels <- paste(names(codes), codes, sep = " - ")        # "Y - Yes", "1 - This code"
+  factor(labels[match(as.character(x), names(codes))],
+         levels  = labels,                                 # keeps the order of your translation
+         ordered = TRUE)
+}
+
+orig_certificates |> 
+  mutate ( across ( any_of (names (translation_codes) ), 
+                    \(x) code_to_factor ( x, translation_codes[[cur_column()]] ) 
+                   )
+  )
+
+
+```
