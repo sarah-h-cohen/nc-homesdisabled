@@ -1,15 +1,12 @@
 
 library(tidyverse)
-library(googlesheets4)
+library(here)
 
 
-# death_codes <- 
-# read_sheet("https://docs.google.com/spreadsheets/d/1wYl_WDe_zejhZALq8m1pN30IQzIpRrVX_2RDDZwocEY/edit?usp=sharing", sheet="all_code_list") |> 
-#   select  (code, description ) 
-
-# saveRDS(death_codes, "raw_cod_list.RDS")
-
-death_codes <- readRDS("death-certificates/raw_cod_list.RDS")
+# every code on the ICF deaths, with its description, from 03-cause-code-list.qmd
+death_codes <-
+  readRDS(here("death-certificates/processed/03-cause-code-list.RDS")) |>
+  select ( code, description)
 
 
 ############### Sentinel lookup #########################
@@ -809,7 +806,7 @@ sentinel_lookup <-
   select ( code, description, short_label, plain_language_definition, care_focus_area, sentinel_level)
 
 
-saveRDS(sentinel_lookup, "death-certificates/cod_sentinel_coding.RDS")
+saveRDS(sentinel_lookup, here("death-certificates/processed/04-sentinel-lookup.RDS"))
 
 # should be empty -- any codes here need a definition added above
 sentinel_lookup |> filter ( is.na(sentinel_level) | is.na(short_label))

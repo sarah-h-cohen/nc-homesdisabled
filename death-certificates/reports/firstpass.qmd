@@ -6,7 +6,7 @@ format:
   html:
     theme:
      - cosmo
-     - ../custom.scss
+     - ../../custom.scss
     toc: false
     code-tools: true
     page-layout: full
@@ -28,7 +28,7 @@ engine:
 #| label: setup
 
 pacman::p_load("tidyverse", "lubridate", "janitor", "here", "glue", "ggthemes", "forcats", "gt", "reactable", "gtExtras", "gtsummary", "reactablefmtr", "writexl")
-invisible(here::i_am("death-certificates/cod-icf-deaths-firstpass.qmd"))
+invisible(here::i_am("death-certificates/reports/firstpass.qmd"))
 
 
 ```
@@ -50,7 +50,7 @@ level_labels <- c (
 )
 
 deaths <-
-  readRDS ( here ( "death-certificates/cod-deaths-coded.RDS")) |>
+  readRDS ( here ( "death-certificates/processed/05-deaths-coded.RDS")) |>
   mutate (
     # government deaths have no facility name; use the owner
     `Facility Name` = if_else ( df_source == "Gov", "North Carolina", `Facility Name`),
@@ -61,7 +61,7 @@ deaths <-
   )
 
 causes <-
-  readRDS ( here ( "death-certificates/cod-causes-coded.RDS")) |>
+  readRDS ( here ( "death-certificates/processed/05-causes-coded.RDS")) |>
   left_join ( select ( deaths, death_id, group), join_by ( death_id))
 
 ```
@@ -187,7 +187,7 @@ review_areas <-
   summarise ( review_areas = paste ( unique ( care_focus_area), collapse = "; "))
 
 uc_labels <-
-  readRDS ( here ( "death-certificates/cod_sentinel_coding.RDS")) |>
+  readRDS ( here ( "death-certificates/processed/04-sentinel-lookup.RDS")) |>
   select ( uc = code, uc_label = short_label)
 
 level_3 <-
@@ -312,7 +312,7 @@ about <- tribble (
 )
 
 deaths_sheet <-
-  readRDS ( here ( "death-certificates/cod-icf-combined-deaths.RDS")) |>
+  readRDS ( here ( "death-certificates/processed/02-icf-deaths.RDS")) |>
   mutate ( `Facility Name` = if_else ( df_source == "Gov", "North Carolina", `Facility Name`)) |>
   left_join (
     deaths |> select ( death_id, group, age, level, uc:needs_review, -any_of ( c ( "max_level"))),
@@ -329,10 +329,10 @@ write_xlsx (
   list (
     Deaths        = deaths_sheet,
     Causes        = causes_sheet,
-    `Code lookup` = readRDS ( here ( "death-certificates/cod_sentinel_coding.RDS")),
+    `Code lookup` = readRDS ( here ( "death-certificates/processed/04-sentinel-lookup.RDS")),
     About         = about
   ),
-  here ( "death-certificates/icf-deaths-cause-coded.xlsx")
+  here ( "death-certificates/reports/icf-deaths-cause-coded.xlsx")
 )
 
 ```

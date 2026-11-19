@@ -6,6 +6,7 @@ format:
     code-fold: show
     embed-resources: true
 execute:
+  eval: false
   echo: true
   warning: false
   message: false
@@ -19,33 +20,28 @@ This assumes you have the original data saved in a subfolder called `data/all_de
 
 ::: 
 
-Generally, the steps are this:
-
-1. Create the fixed-width format 
-2. Create the lookup tables for coded values. In this case, we need a list of named vectors, with the name as the original value and the value as the translation. They should be in the order we want the resulting factors to be in. 
-3. Read all of the raw text files into a single large data frame. 
-4. Apply the translations and replace the original values with the translations. 
-
-The only gotcha is that the names of the vectors with translations should be the same as the name of the variable , but with "_codes" appended to the name. 
-
 ## Fixed-width specfications
 
 ```{r}
 #| label: setup
+#| message: false
+#| output: false
+#| eval: true
 
-library(tidyverse)
+suppressWarnings(library(tidyverse))
 library(readr)
 library(janitor)
 library(lubridate)
 library(duckdb)
 library(here)
+library(glue)
 
 
 rm(list = ls())
 
 # change this path if your data is organized differently
 
-here::i_am("death-certificates/nc-certs-import-2020-v2.qmd")
+here::i_am("death-certificates/01-import-nc-deaths.qmd")
 
 ```
 
@@ -53,7 +49,7 @@ The fixed-width specs have the start positions, end positions, and names of the 
 
 ```{r}
 #| label: fixed-width-specs
-#| code-fold: true
+
 nc_death_cols_2020 <- fwf_positions(
   start = c(
     1, 5, 7, 13, 14, 26, 27, 77, 78, 128, 138, 139, 189, 190, 191,
@@ -111,11 +107,12 @@ Create the map function to read in the proper files
 #| label: get-file-list
 
 
-# what are the file names? 
-import_list <- 
-  str_c ( "data/all_death_files/yr2020-forward/", list.files("data/all_death_files/yr2020-forward"))
+import_list <- list.files("data/all_death_files/yr2020-forward", full.names = TRUE) |> 
+  set_names(\(x) str_extract(x, "\\d{4}(?=\\D*$)")) |> 
+  (\(x) x[order(names(x))])()
 
-import_list
+# import_list
+
 ```
 
 Import death list then combine into one sorted data frame
@@ -132,20 +129,200 @@ death_list <- map ( import_list ,
         na = c("", " ", "Blank"), 
         locale= locale(encoding="WINDOWS-1252")  # to fix <92> instead of apostrophes and remove warnings
     ) |> 
-    clean_names() |> 
-    rowid_to_column(var="orig_rowid")
-    
+    clean_names() 
     
     return (deaths)
   }
 
 )
 
-ncdeaths <- list_rbind ( death_list) |>  arrange (dod_yr, orig_rowid )
+ncdeaths <- list_rbind ( death_list, names_to = "file_year") |> 
+  rowid_to_column ( var = "orig_rowid" ) 
+
+# I checked, file year is always the same as dod_year
+
+```
+Save the original, un-cleaned and raw data into an RDS file. 
+
+```{r}
+#| label: save-raw-dataframe
+
+saveRDS(ncdeaths, here("death-certificates/data/deaths_2020_to_2026_raw.RDS"))
+
 
 ```
 
-## Create lookup tables
+## Minimal cleanup
+
+1. Remove the 25 or so "Void" records: void == "1"
+
+```{r}
+#| label: remove-void-records
+
+cleanup_deaths <- 
+  ncdeaths |> 
+  filter ( void == "0")
+
+
+```
+
+2. Remove always-empty and many of the race codes
+
+```{r}
+#| label: remove-empty-cols
+
+empty_cols <- setdiff(
+  names(cleanup_deaths),
+  names(janitor::remove_empty(cleanup_deaths, which = "cols"))
+)
+
+print ( empty_cols)
+
+cleanup_deaths <-
+  cleanup_deaths |> 
+  remove_empty( which = "cols")
+
+
+```
+Removed 26 columns
+
+
+3. Deal with dates, age and human-readable id
+
+I'm doing both of these at the same time, since I have to use the same date functions for both of them. 
+
+```{r}
+#| label: create-dates
+
+
+cleanup_deaths <-
+cleanup_deaths |> 
+  mutate (
+           dod_full = glue("{dod_yr}{dod_mo}{dod_dy}") |> as.character(), 
+           dob_full = glue("{dob_yr}{dob_mo}{dob_dy}") |> as.character(), 
+           death_id = glue("{dod_full}_{lname}_{gname}_{dob_full}"),
+           dod = ymd(dod_full, quiet=TRUE), 
+           dob = ymd(dob_full, quiet=TRUE),
+           doi = ymd( glue("{doi_yr}{doi_mo}{doi_dy}") |> as.character(), quiet=TRUE),
+           age_value = case_when ( agetype == "1" ~ as.integer(age),
+                                   agetype %in% c("2",  "4", "5", "6") ~ as.integer(0) , 
+                                   .default = NA_integer_),
+          .after=orig_rowid
+)
+
+
+
+```
+
+
+To check for duplicates:
+
+```{r}
+
+dup_ids <- cleanup_deaths$death_id[duplicated(cleanup_deaths$death_id)] |> unique()
+
+cleanup_deaths |> 
+  filter(death_id %in% dup_ids) |> 
+  arrange(death_id)
+
+
+
+```
+
+
+There are 9 duplicated death_id columns. Most of these look like they are actually duplicated death certificates.  I'm not worrying about it. (Only one or two look like it's possible they are twins ("BABY") who were born and died at the same time). These won't a
+
+
+4. Race and Hispanic origin recoding
+
+The NCHS bridge is an old thing to handle multirace, and isn't really used. Almost always empty in this file.
+
+To recode:
+
+* Combine the race codes into the major groups. These are the race1 through race15 (the non-literal ones). It appears that they have already been coded as the race code when it's a literal. For example all of the ones that have a Native American literal also have Native American as "Y" . The major groups are:  race1 = white, race2= black, race3 = Native American or Alaska Native, race4-10 are Asian, race11-race14 are NHOPI . (Hawiian and Pacific Islander). race15 is unknown.  Each major group is 1 or 0 
+
+* To create the race code, anyone with sum of > 1 is multiracial; anyone with sum of 0 is unknown; otherwise, use the race
+
+```{r}
+#| label: create-race-collapse
+
+cleanup_deaths <- cleanup_deaths |> 
+  mutate(
+    # one 1/0 flag per major group
+    race_white = as.integer(race1 %in% "Y"),
+    race_black = as.integer(race2 %in% "Y"),
+    race_aian  = as.integer(race3 %in% "Y"),
+    race_asian = as.integer(if_any(num_range("race", 4:10), \(x) x %in% "Y")),
+    race_nhopi = as.integer(if_any(num_range("race", 11:14), \(x) x %in% "Y")),
+    
+    # how many major groups each person is in (race15, unknown, isn't counted)
+    race_count = race_white + race_black + race_aian + race_asian + race_nhopi,
+    
+    race = factor(
+      case_when(
+        race_count > 1   ~ "Multiracial",
+        race_count == 0  ~ "Unknown",
+        race_white == 1  ~ "White",
+        race_black == 1  ~ "Black",
+        race_aian  == 1  ~ "American Indian or Alaska Native",
+        race_asian == 1  ~ "Asian",
+        race_nhopi == 1  ~ "Native Hawaiian or Pacific Islander"
+      ) , 
+    levels = c("White", "Black", "AIAN", "Asian", "NHOPI", "Multiracial", "Unknown")
+    ), 
+
+    hispanic = as.integer(if_any(num_range("dethnic", 1:4), \(x) x %in% "H" ) ), 
+    nonhispanic = as.integer(if_all(num_range("dethnic", 1:4), \(x) x %in% "N") ), 
+    
+    ethnicity = factor ( case_when (  hispanic == 1 ~ "Hispanic", nonhispanic==1 ~"Non-Hispanic", .default = "Unknown") , 
+                            levels = c("Hispanic", "Non-Hispanic", "Unknown") ) 
+  )
+
+```
+
+
+
+
+5. Create convenience column for names and addresses
+
+This includes mother, decedent . It doesn't appear that the father's full name exists in the dataset - the column that would have had it is always empty. The father's last name is the only part of the name that we have. 
+
+This is kind of weird - we have the father's last name, but not the father's first name. We have the mother's first and middle name, and her maiden name, but not her last name. It doesn't really take into account complicated family relationships. 
+
+However, it seemst that never-married women's names are there. It's unclear what happens if the decedent's mother was married more than once. However, I'll just keep it as the mother's "maiden" name, but put the father's name right next to it. 
+
+The only zip codes that are > 5 characters are the unknown ones
+
+```{r}
+#| label: combine-names
+
+cleanup_deaths <- cleanup_deaths |> 
+  unite(decedent_given, gname, mname, suff, 
+        sep = " ", na.rm = TRUE, remove = FALSE) |> 
+  unite(decedent_name, lname, decedent_given, 
+        sep = ", ", na.rm = TRUE, remove = FALSE) |> 
+  
+  unite(mother_given, dmomf, dmommid, 
+        sep = " ", na.rm = TRUE, remove = FALSE) |> 
+  unite(mother_name, dmommdn, mother_given, 
+        sep = ", ", na.rm = TRUE, remove = FALSE) |> 
+  
+  
+  # don't use the unit number - too complicated, and rarely used.
+  unite(res_street, stnum_r, predir_r, stname_r, stdesig_r, postdir_r,
+        sep = " ", na.rm = TRUE, remove = FALSE) |> 
+  unite(death_street, stnum_d, predir_d, stname_d, stdesig_d, postdir_d, 
+        sep = " ", na.rm = TRUE, remove = FALSE) |> 
+  mutate(across( c(decedent_name, mother_name, res_street, death_street) , \(x) na_if( x, "" )
+                ) , 
+         across( c(zip9_d, zip9_r) , \(x) str_replace(x, "999999999", "UNKNOWN") 
+               )
+    )
+
+```
+
+
+## Apply code translations 
 
 Import the lookup tables that I saved in the program `all_death_files/certificates-translation-codes.R`, which is saved as `death-cert-translation-codes-2020.RDS`
 This is a list of named vectors, with the name of the column as the name of the list item. 
@@ -154,6 +331,8 @@ This is a list of named vectors, with the name of the column as the name of the 
 #| label: lookup-tables
 
 translation_codes <- readRDS(here("death-certificates/data/all_death_files/death-cert-translation-codes-2020.RDS"))
+# remove "codes" from the end of the vector names.
+names(translation_codes) <- str_remove(names(translation_codes), "_codes$")
 
 ```
 
@@ -164,6 +343,7 @@ Apply all of the lookup codes to create factors instead of character values -- b
 
 # code =  the name of the code value
 # translation map = named vector for translation
+# took out ",  .names  = "{.col}_lit"" from mutate - already keeping original
 
 code_to_factor <- function(x, codes) {
   codes  <- unlist(codes)                                  # back to a named vector
@@ -174,153 +354,96 @@ code_to_factor <- function(x, codes) {
          ordered = TRUE)
 }
 
-# remove "codes" from the end of the vector names.
-names(translation_codes) <- str_remove(names(translation_codes), "_codes$")
 
-translated_deaths <- ncdeaths |>
+
+translated_deaths <- cleanup_deaths |>
   mutate(across(any_of(names(translation_codes)),
-                \(x) code_to_factor(x, translation_codes[[cur_column()]])))
-
-```
-
-Apply the translations and replace the original values with these. If you want to keep the original and add these instead, uncomment the .names part and add a comma just above it. 
-
-## Minimal cleanup
-
-1. Remove the 25 or so "Void" records. 
-2. create a (pretty) unique id with meaning for the remaining ones. I'll keep the record ID for true uniqueness. This just makes it make a little more sense when we go back and forth and want to look things up. 
-3. Create a location of death and a location of residence that isn't across so many columns.  
-4.  Convert dod, doi, dob to dates.
-5.  Remove last 4 digits wherever there are 9-digit zipcodes.
-6. Eliminate all of the race codes, and just keep the ncha standardized version. 
-7. Combine last, first , middle names of father, mother. 
-8. Combine first and middle of decedant.
-9. Convert age to number, and set to 0 if the agetype isn't years.
-10. for dod and dob, there are about 20 records with invalid dates. Just leave them as na. Change tod to time.
-11. Move around the variables so that they make sense (eg, put the causes of death together, along with the autopsy information; put the residence and death locations together; put the mother and father information together; and put the demographic information together such as occupation, industry, nchs code, sex, marital status, etc. 
-)
-
-
-::: {.callout-note}
-
-In about 8 months of 2020, they did not fill out the address of death or the pieces of the death address. The address is in the insitution column instead of "HOME" when the location is home.  I'm going to work on that here. 
-
-Keep all of the geography codes even if they're redundant. I'm unclear as to when / if they are filled out when the residence or death location are not. 
-
-::: 
-
-
-
-
-There is a slight chance that these won't be unique. It can happen if two people with the same DOB and the same DOD have the same first and last name. (Say, twins who die together on the same day) 
-
-
-
-```{r}
-#| label: create-unique-id
-#| warning: false
-
-library(glue)
-
-
-# There are 22 rows with invalid dobs -- they have "99" in the year,month, day or all. These will not convert to dates, but I'm not worried about it.
-
-deaths_unique <- 
-  labeled_data |>
-  filter ( str_detect ( void, "VOID", negate=TRUE)) |> 
-  mutate ( dod_full = glue("{dod_yr}{dod_mo}{dod_dy}") |> as.character(), 
-           dob_full = glue("{dob_yr}{dob_mo}{dob_dy}") |> as.character(), 
-           death_id = glue("{dod_full}_{lname}_{gname}_{dob_full}"),
-           dod = ymd(dod_full), 
-           dob = ymd(dob_full),
-          .after=orig_rowid
-)
-
-
-
-
-```
-
-There were still 17 duplicates. I think I know why -- they may be "alias" names so they're there twice. But I frankly didn't look into it too closely for that small number of rows. Instead, I'm just saving the last one found because they do appear to add information later on. This is done in data.table so it doesn't take forever. 
-
-```{r}
-
-library (data.table)
-deaths_unique_last <- 
-  data.table(deaths_unique ) |> 
-  unique( by = "death_id", fromLast = TRUE) |> 
-  as_tibble()
-  
-
+                \(x) code_to_factor(x, translation_codes[[cur_column()]])
+              )
+  )
 
 ```
 
 
-## Save relevant info
+## Save cleaned up data
 
-I'm moving and removing some of the columns so that: 
-
-* Things that go together are together, like the names of mothers and fathers. 
-* Removed the gazillion race and ethnicity codes, and just kept the recodes that are done for NCHS
-* Removed items that are always blank / redacted
-
+Get rid of columns I don't plan to save in this iteration, remembering that I still have the originals for things like addresses and names parts. For the purpose of searching, though, it's easier to have the combined ones. 
 
 ```{r}
-#| label: remove-races-etc
+#| label: move-columns
 
-deaths_save <- 
-  deaths_unique_last |> 
-  mutate ( dethnice = 
-          case_when ( 
-              dethnice == "100" ~ "Non-Hispanic",
-              (dethnice >= "200" & dethnice < "300") ~ "Hispanic" , 
-              .default = "Unknown") |> 
-           factor(levels = c("Non-Hispanic", "Hispanic", "Unknown"))
+deaths_save <-
+  translated_deaths |> 
+  select  (
+      orig_rowid, 
+      death_id,
+      dod_yr,
+      dod,
+      tod,
+      decedent_name,
+      dob,
+      age_value,
+      sex,
+      manner,
+      acme_uc,
+      rac,
+      referred,
+      autop,
+      autopf,
+      dplace,
+      dinsti,
+#      address_d,
+      death_street,
+      citytext_d,
+      zip9_d,
+      countytext_d,
+      res_street,
+      unitnum_r,
+      citytext_r,
+      statec,
+      zip9_r, 
+      countytext_r,
+      bplace_cnt,
+      bplace_st,
+      race,
+      ethnicity,
+      marital,
+      deduc,
+      mother_name,
+      flname,
+      occup,
+      disp,
+      injpl,
+      howinj,
   ) |> 
-  select ( - c(ssn, dob_full, dod_full, fileno, ends_with("bypass"), dethnic1:race23c)) 
+   mutate(
+      fix_home = dod_yr == "2020" & str_starts(dplace, "4") & is.na(death_street),
+      death_street = if_else(fix_home, dinsti, death_street),
+      dinsti   = if_else(fix_home, "HOME", dinsti)
+  ) |> 
+  select (-fix_home)
+
+
+
+
+
+
 
 
 ```
 
-
-
-```{r}
-
-deaths_save <- 
-  deaths_save |> 
-  select ( death_id, dod, dob, tod, manner, dstate, lname, mname, gname, dmaiden,
-          suff, alias, sex, agetype, age, 
-            bplace_cnt, bplace_st, 
-            stnum_r:countrytext_r, 
-            cityc, countyc, statec, limits, 
-            marital, dplace, cod, dinsti,
-            address_d:citycode_d,
-            disp, tod, deduc, 
-            occup, indust,
-            nchsbridge,  dethnice, 
-            injpl:toi_unit, howinj,
-            flname, ddadf, ddadmid, dmomf, dmommid, dmommdn, 
-            dod_yr, dod_mo, dod_dy, 
-            dob_yr:dob_dy, 
-            dthcountrycd , dthcountry )
-
-
-```
-
-# save to duckdb and to csv
+# save to duckdb and RDS
 
 ```{r}
 #| label: setup-duckdb
 
-con <- dbConnect(duckdb(), "data/deaths2020up.duckdb")
-dbWriteTable(con,  "deaths_from2020", deaths_save, overwrite=TRUE)
+con <- dbConnect(duckdb(), here("death-certificates/data/deaths2020up.duckdb"))
+dbWriteTable(con,  "deaths_cleaned_2020", deaths_save, overwrite=TRUE)
 dbDisconnect(con, shutdown=TRUE)
 
 
-# now write an Excel table
-library(writexl)
-
-writexl::write_xlsx(deaths_save, path="data/deaths2020up.xlsx")
+# rds will keep factors and dates right
+saveRDS(deaths_save, here("death-certificates/data/deaths_cleaned_2020_to_2026.RDS"))
 
 
 ```

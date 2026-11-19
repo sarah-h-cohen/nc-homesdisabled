@@ -1,0 +1,108 @@
+---
+title: "Cause-of-death code list"
+format: html
+---
+
+Builds the list of every cause-of-death code that appears on the ICF deaths, with a description for each one. `04-sentinel-lookup.r` reads this list and adds the sentinel levels.
+
+Neither the NCHS list nor the ICD-10 list covers all of the codes on our deaths, so this combines them. It uses the ICD-10 description when there is one and the NCHS description otherwise. The ICD-10 file also supplies the group each code falls under (`master_code`, `master_desc`).
+
+This replaces the earlier route through `archive/cod-nhcs-icd10-codes.qmd`, `archive/separate-causes-of-death.r` and the `all_code_list` tab of the Google Sheet.
+
+```{r}
+#| label: setup
+
+pacman::p_load(tidyverse, readxl, here)
+
+i_am("death-certificates/03-cause-code-list.qmd")
+
+```
+
+Every code on the ICF deaths, with the number of times it appears.
+
+```{r}
+#| label: icf-codes
+
+icf_codes <-
+  readRDS(here("death-certificates/processed/02-icf-deaths.RDS")) |>
+  select ( death_id, rac) |>
+  separate_rows ( rac, sep = "\\s+") |>
+  count ( rac)
+
+```
+
+## NCHS list
+
+The NCHS list of valid cause-of-death codes, downloaded from CDC. The codes have periods in them, so take those out to match the death certificates.
+
+```{r}
+#| label: nchs-codes
+
+nchs_codes <-
+  read_excel(here("death-certificates/data/cod-codes/allvalid2023-detailed-titles-headings.xlsx"), skip = 5) |>
+  janitor::clean_names() |>
+  mutate ( code = str_remove_all ( code, "\\.")) |>
+  select ( code, nchs_desc = icd_title)
+
+```
+
+## ICD-10 list from CMS
+
+Downloaded the 2025 files from https://www.cms.gov/medicare/coding-billing/icd-10-codes
+
+The "order file" has header rows that group the codes in the order they appear in the instructions. Even when a code has no exact match, its group is often good enough for us.
+
+```{r}
+#| label: icd10-codes
+
+icd10_codes <-
+  read_fwf ( here("death-certificates/data/cod-codes/icd10cm_order_2025.txt"),
+    fwf_cols ( row_order = c(1, 5),
+               code = c(7, 13),
+               header = c(15, 15),
+               short_desc = c(17, 76),
+               long_desc = c(78, NA)
+    ),
+    col_types = cols("i", "c", "i", "c", "c")
+  ) |>
+  mutate ( headline = if_else ( header == 0, short_desc, NA_character_),
+           master_code = if_else ( header == 0, code, NA_character_)
+  ) |>
+  fill ( c ( headline, master_code), .direction = "down") |>
+  select ( code, icd_desc = short_desc, master_code, master_desc = headline)
+
+```
+
+## Combine
+
+Keep only the codes on our deaths.
+
+```{r}
+#| label: combine
+
+cause_code_list <-
+  nchs_codes |>
+  full_join ( icd10_codes, join_by ( code)) |>
+  inner_join ( icf_codes, join_by ( code == rac)) |>
+  mutate ( description = coalesce ( icd_desc, nchs_desc)) |>
+  select ( code, description, master_code, master_desc, n) |>
+  arrange ( code)
+
+```
+
+Codes on the deaths that are in neither list. These would end up with no description, so this should come back empty.
+
+```{r}
+#| label: check-unmatched
+
+icf_codes |>
+  anti_join ( cause_code_list, join_by ( rac == code))
+
+```
+
+```{r}
+#| label: save
+
+saveRDS(cause_code_list, here("death-certificates/processed/03-cause-code-list.RDS"))
+
+```

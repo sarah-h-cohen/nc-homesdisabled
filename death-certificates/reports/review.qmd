@@ -6,7 +6,7 @@ format:
   html:
     theme:
      - cosmo
-     - ../custom.scss
+     - ../../custom.scss
     toc: false
     code-tools: true
     page-layout: full
@@ -24,7 +24,7 @@ engine:
 ---
 
 <!--
-Version of cod-icf-deaths-firstpass.qmd for sharing outside the team.
+Version of firstpass.qmd for sharing outside the team.
 No ownership-group comparisons, and no names shown.
 death_id is kept as a hidden column so a death can be traced back if it's questioned;
 it isn't displayed, but it is in the page source.
@@ -34,7 +34,7 @@ it isn't displayed, but it is in the page source.
 #| label: setup
 
 pacman::p_load("tidyverse", "lubridate", "janitor", "here", "glue", "gt", "reactable", "reactablefmtr")
-invisible(here::i_am("death-certificates/cod-icf-deaths-review.qmd"))
+invisible(here::i_am("death-certificates/reports/review.qmd"))
 
 ```
 
@@ -49,7 +49,7 @@ level_labels <- c (
 )
 
 deaths <-
-  readRDS ( here ( "death-certificates/cod-deaths-coded.RDS")) |>
+  readRDS ( here ( "death-certificates/processed/05-deaths-coded.RDS")) |>
   mutate (
     # government deaths have no facility name; use the owner
     `Facility Name` = if_else ( df_source == "Gov", "North Carolina", `Facility Name`),
@@ -59,7 +59,7 @@ deaths <-
   )
 
 causes <-
-  readRDS ( here ( "death-certificates/cod-causes-coded.RDS"))
+  readRDS ( here ( "death-certificates/processed/05-causes-coded.RDS"))
 
 ```
 
@@ -122,6 +122,8 @@ deaths |>
 
 Every death with at least one level 3 cause. Search across all columns with the box at the top, filter within a column with the boxes under the headers, or click a header to sort. Click the arrow at the left of a row to see every cause listed on that death, in the order it appears on the death certificate.
 
+"Terminal illness" in the Context column marks deaths where the underlying cause was a terminal illness such as cancer, dementia or Parkinson's, and the only level 3 causes were ones that often come at the end of life (aspiration pneumonia, malnutrition, dehydration, bedsores). These may reflect the illness rather than care, but they still deserve a look.
+
 ```{r}
 #| label: level-3-table
 
@@ -134,7 +136,7 @@ review_areas <-
   summarise ( review_areas = paste ( unique ( care_focus_area), collapse = "; "))
 
 uc_labels <-
-  readRDS ( here ( "death-certificates/cod_sentinel_coding.RDS")) |>
+  readRDS ( here ( "death-certificates/processed/04-sentinel-lookup.RDS")) |>
   select ( uc = code, uc_label = short_label)
 
 level_3 <-
@@ -143,8 +145,9 @@ level_3 <-
   left_join ( review_areas, join_by ( death_id)) |>
   left_join ( uc_labels, join_by ( uc)) |>
   arrange ( desc ( death_date)) |>
+  mutate ( context = if_else ( flag_terminal_context, "Terminal illness", "")) |>
   # official cause first, right beside the expand arrow; death_id last (hidden in the table)
-  select ( uc_label, `Facility Name`, death_date, age, manner, autop,
+  select ( uc_label, context, `Facility Name`, death_date, age, manner, autop,
            top_labels, review_areas, death_id)
 
 # every cause on each death, in record-axis order (the order on the certificate), for the expandable rows
@@ -168,6 +171,7 @@ level_3_table <- reactable (
   defaultColDef = colDef ( headerVAlign = "bottom", vAlign = "top"),
   columns = list (
     uc_label         = colDef ( name = "ACME UC", minWidth = 140, style = list ( fontWeight = 600)),
+    context          = colDef ( name = "Context", minWidth = 90),
     `Facility Name`  = colDef ( name = "Facility", minWidth = 140),
     death_date       = colDef ( name = "Date of death", format = colFormat ( date = TRUE), minWidth = 90),
     age              = colDef ( name = "Age", format = colFormat ( digits = 0), minWidth = 55, align = "right", filterable = FALSE),
@@ -235,7 +239,7 @@ htmltools::div (
 
 
 ```{r}
-cods <- readRDS(here("death-certificates/cod_sentinel_coding.RDS"))
+cods <- readRDS(here("death-certificates/processed/04-sentinel-lookup.RDS"))
 
 
 cods |>   

@@ -37,7 +37,7 @@ You can find a little guide to writing in source mode in that textbook that I se
 
 pacman::p_load("tidyverse", "googlesheets4", "duckdb", "janitor", "lubridate", "here", "DT")
 
-here::i_am("death-certificates/example-death-queries.qmd")
+here::i_am("death-certificates/scratch/example-death-queries.qmd")
 
 ```
 

@@ -13,7 +13,7 @@ Convert these to one row per cause, not one row per death, and match the causes 
 
 pacman::p_load(tidyverse, here)
 
-i_am("death-certificates/cod-icfs-sentinel-coded.qmd")
+i_am("death-certificates/05-code-deaths.qmd")
 
 
 ```
@@ -26,7 +26,7 @@ Load the list of deaths, and separate them into one row per cause of death from 
 
 
 cause_per_row <- 
-  readRDS(here("death-certificates/cod-icf-combined-deaths.RDS")) |>  
+  readRDS(here("death-certificates/processed/02-icf-deaths.RDS")) |>  
   select ( death_id, df_source, manner, autop, man_uc, `Facility Name`, lname, acme_uc,  rac) |> 
   separate_rows ( rac, sep = "\\s+")  |> 
   group_by ( death_id) |> 
@@ -43,14 +43,23 @@ cause_per_row <-
 #| label: get-sentinel-list
 
 cod_codes <- 
-  readRDS(here("death-certificates/cod_sentinel_coding.RDS"))
+  readRDS(here("death-certificates/processed/04-sentinel-lookup.RDS"))
 
 # janitor::get_dupes(cod_codes, code)
 
 
 ```
 
-(Already checked to make sure there are no missing codes. We'll have to do this again if we get a bunch more codes.)
+Check for codes that aren't in the sentinel list. The join below drops them silently, so this should come back empty. If new deaths bring new codes, add them to `04-sentinel-lookup.r` and re-run it first.
+
+```{r}
+#| label: check-missing-codes
+
+cause_per_row |>
+  anti_join ( cod_codes, join_by ( rac == code)) |>
+  count ( rac)
+
+```
 
 ```{r}
 #| label: match-cod-codes
@@ -71,6 +80,7 @@ Roll back up to one row per death. Each death gets the highest sentinel level am
 - `flag_disability_only`: every cause listed is a lifelong condition (level 0), such as cerebral palsy, or epilepsy; none of these explains the death by itself, and with epilepsy it may point to a seizure-related death
 - `flag_bowel_unexplained`: a blocked or stalled bowel with no other explanation listed (cancer, hernia, surgery, loss of blood supply); in this population, often hardened stool from untreated constipation
 - `flag_seizure_pneumonia`: epilepsy or seizures along with pneumonia, which may be aspiration recorded as ordinary pneumonia
+- `flag_terminal_context`: a level 3 death whose underlying cause is a terminal illness (cancer, dementia, Parkinson's, MS, motor neuron disease, end-stage kidney or liver disease), and whose level 3 causes are only ones that often come with end of life (aspiration pneumonia, malnutrition, dehydration, bedsores). This lowers concern rather than raising it, so it's left out of `needs_review` and the death stays at level 3. Choking, falls, injuries, cold exposure and poisoning never get this flag.
 
 ```{r}
 #| label: roll-up-deaths
@@ -83,6 +93,8 @@ seizure     <- "^(G40.|R568)$"
 sudden      <- "^(I461|I469|R99|R092)$"
 bowel_block <- "^(K56.|K598)$"
 bowel_cause <- "^(C|K913|K4[0-35-6]|K55|Y83)"
+terminal_uc <- "^(C|F01|F03|G30|G20|G35|G122|N185|K72|K746)"
+end_of_life <- "^(J690|E43|E46|E86|E870|L89.)$"
 
 deaths_coded <-
   causes_coded |>
@@ -106,13 +118,16 @@ deaths_coded <-
     flag_disability_only   = all ( sentinel_level == 0 | str_detect ( rac, "^G40")),
     flag_bowel_unexplained = any ( str_detect ( rac, bowel_block)) & !any ( str_detect ( rac, bowel_cause)),
     flag_seizure_pneumonia = any ( str_detect ( rac, seizure)) & any ( str_detect ( rac, pneumonia)),
+    flag_terminal_context  = max_level == 3 & str_detect ( first ( uc), terminal_uc) &
+                             all ( str_detect ( rac[sentinel_level == 3], end_of_life)),
     .groups = "drop"
   ) |>
   left_join (
     cod_codes |> select ( code, uc_description = description, uc_care_area = care_focus_area, uc_level = sentinel_level),
     join_by ( uc == code)
   ) |>
-  mutate ( needs_review = if_any ( starts_with ( "flag_"))  & max_level < 3 
+  # terminal context lowers concern, so it doesn't count toward review
+  mutate ( needs_review = if_any ( c ( starts_with ( "flag_"), -flag_terminal_context))  & max_level < 3
     )
 
 
@@ -130,7 +145,7 @@ Save the one-row-per-death file for the teammate summary.
 ```{r}
 #| label: save-deaths-coded
 
-saveRDS(deaths_coded, here("death-certificates/cod-deaths-coded.RDS"))
-saveRDS(causes_coded, here("death-certificates/cod-causes-coded.RDS"))
+saveRDS(deaths_coded, here("death-certificates/processed/05-deaths-coded.RDS"))
+saveRDS(causes_coded, here("death-certificates/processed/05-causes-coded.RDS"))
 
 ```

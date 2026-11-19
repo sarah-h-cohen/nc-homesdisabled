@@ -12,6 +12,8 @@ Take Malena's list of deaths that she's already identified , combine them and ma
 
 pacman::p_load("here", "tidyverse", "googlesheets4", "lubridate", "janitor")
 
+here::i_am("death-certificates/02-icf-deaths.qmd")
+
 ```
 
 
@@ -115,7 +117,7 @@ save this for later
 ```{r}
 #| label: save-icf-list
 
-saveRDS(deaths_working, "death-certificates/cod-icf-combined_deaths.RDS")
+saveRDS(deaths_working, here("death-certificates/processed/02-icf-deaths.RDS"))
 
 
 ```

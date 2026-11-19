@@ -5,7 +5,7 @@ Facilities for the Intellectually Disabled (ICF/IID) in North Carolina.
 
 We have a public database of all NC death certificates from 2020 through
 about May 2026. We identified 483 deaths in ICF/IID homes by hand; they
-are in a Google Sheet (organized by ownership) and combined in the quarto doc called `cod-icf-deaths-raw.qmd`.  
+are in a Google Sheet (organized by ownership) and combined in the quarto doc called `02-icf-deaths.qmd`.  
 
 Goal: use cause-of-death codes to flag deaths that may indicate
 quality-of-care problems in a home, or individual cases to investigate
@@ -31,20 +31,27 @@ the GitHub repo or the web.
 
 ## Folder layout
 
-- `data/all_death_files/`: original NC DHHS data and documentation
-- `data/cod-codes/`: ICD-10 and NCHS code files. No longer needed; don't
-  read them.
-- All files beginning with `cod` belong to this cause-of-death analysis.
-- Key files: `cod_sentinel_recodes.r` (builds `cod_sentinel_coding.RDS`),
-  `cod-icfs-sentinel-coded.qmd` (builds `cod-deaths-coded.RDS`, one row
-  per death), `cod-icf-deaths-firstpass.qmd` (team report)
-- `cod-icf-deaths-review.qmd` is the firstpass report for an outside reader, with no group comparisons or names and `death_id` in a hidden column.
+`README.md` has the full map of programs, inputs and outputs. Keep it
+current when adding or renaming a program or output.
+
+- Programs are numbered in run order (`01-` to `06-`). Every file a
+  program writes goes in `processed/` and starts with that program's
+  number. Lowercase, hyphens, `.RDS`, and `here()` paths from the repo root.
+- Key files: `04-sentinel-lookup.r` (builds `processed/04-sentinel-lookup.RDS`),
+  `05-code-deaths.qmd` (builds `processed/05-deaths-coded.RDS`, one row
+  per death), `reports/firstpass.qmd` (team report)
+- `reports/review.qmd` is the firstpass report for an outside reader, with no group comparisons or names and `death_id` in a hidden column.
+- `data/`: statewide death files and original NC DHHS downloads, kept
+  under their original names. In `data/cod-codes/`, only
+  `allvalid2023-detailed-titles-headings.xlsx` and `icd10cm_order_2025.txt`
+  are used (by `03-cause-code-list.qmd`); ignore the rest.
+- `archive/`: retired programs; paths not updated. `scratch/`: examples and notes.
 
 ## R conventions
 
 - Use current tidyverse style, including the native pipe.
 - Prefer annotated Quarto documents to R scripts. Use scripts only to
-  separate long code that other files call (e.g., `cod_sentinel_recodes.r`).
+  separate long code that other files call (e.g., `04-sentinel-lookup.r`).
 - Prefer simplicity to elegance. This analysis won't be repeated, so
   efficiency and error handling matter less than simple solutions.
 - For report tables, prefer gt or reactable with the NYT themes from
